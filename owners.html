@@ -5,45 +5,85 @@
 <title>Owner Bid Button</title>
 <style>
 body{
+    margin:0;
     background:#00121c;
     font-family:Arial;
-    text-align:center;
-    padding-top:60px;
     color:#00eaff;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    overflow:hidden;
 }
 
-#teamLabel{
-    margin-top:20px;
-    font-size:28px;
-    color:#9ffcff;
+/* TOP 70% BIG BUTTON */
+#bigButtonArea{
+    height:70%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-button{
-    width:80%;
-    padding:25px;
-    margin:20px auto;
-    font-size:32px;
-    font-weight:bold;
-    border:none;
-    border-radius:12px;
+#bidBtn{
+    width:70vw;
+    height:70vw;
+    max-width:70vh;
+    max-height:70vh;
+    border-radius:50%;
     background:#00eaff;
     color:#00121c;
-    box-shadow:0 0 20px #00eaff;
+    font-size:36px;
+    font-weight:bold;
+    border:none;
+    box-shadow:0 0 40px #00eaff;
 }
-button:active{
-    transform:scale(0.97);
+#bidBtn:active{
+    transform:scale(0.96);
+}
+
+/* BOTTOM 30% INFO PANEL */
+#infoPanel{
+    height:30%;
+    background:#001822;
+    padding:20px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    border-top:2px solid #003040;
+}
+
+.info-text{
+    font-size:26px;
+    color:#9ffcff;
+}
+.value{
+    font-size:36px;
+    font-weight:bold;
+    color:#00eaff;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Tap to Bid</h2>
+<!-- BIG BUTTON -->
+<div id="bigButtonArea">
+    <button id="bidBtn">BID</button>
+</div>
 
-<button id="bidBtn">PLACE BID</button>
-<div id="teamLabel"></div>
+<!-- INFO PANEL -->
+<div id="infoPanel">
+    <div class="info-text">Your Team:</div>
+    <div id="ownerTeam" class="value">---</div>
 
-<!-- Firebase CDN -->
+    <div class="info-text">Current Highest Bid:</div>
+    <div id="currentBid" class="value">---</div>
+
+    <div class="info-text">Highest Bidding Team:</div>
+    <div id="currentTeam" class="value">---</div>
+</div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -62,35 +102,35 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ------- TEAM URL READING -------
+// READ TEAM FROM URL
 const urlParams = new URLSearchParams(window.location.search);
 let teamNum = parseInt(urlParams.get("team"));
-
-// fallback if missing
-if(!teamNum || teamNum < 1 || teamNum > 8){
-    teamNum = 1;
-}
+if(!teamNum || teamNum < 1 || teamNum > 8) teamNum = 1;
 
 const teams = {
-    1: "Team A",
-    2: "Team B",
-    3: "Team C",
-    4: "Team D",
-    5: "Team E",
-    6: "Team F",
-    7: "Team G",
-    8: "Team H"
+    1: "Team A", 2: "Team B", 3: "Team C", 4: "Team D",
+    5: "Team E", 6: "Team F", 7: "Team G", 8: "Team H"
 };
 
-document.getElementById("teamLabel").innerText = teams[teamNum];
+// Display owner's team name
+document.getElementById("ownerTeam").innerText = teams[teamNum];
 
-// ------- SEND BID -------
+// SEND BID WHEN BUTTON IS PRESSED
 document.getElementById("bidBtn").onclick = () => {
     db.ref("latestBid").set({
         teamNum: teamNum,
         time: Date.now()
     });
 };
+
+// RECEIVE LIVE UPDATES FROM MAIN PANEL
+db.ref("liveDisplay").on("value", snapshot=>{
+    const data = snapshot.val();
+    if(!data) return;
+
+    document.getElementById("currentBid").innerText = data.currentBid;
+    document.getElementById("currentTeam").innerText = data.currentTeam;
+});
 </script>
 
 </body>
