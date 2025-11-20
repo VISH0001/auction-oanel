@@ -576,9 +576,9 @@ function resetBid(){
 
 /* player sold */
 function playerSold(){
-  if (!history.length) return; // can't sell if nobody bid
+  if (!history.length) return;
   saleLocked = true;
-  db.ref('auctionState').set("stopped"); // stop auction
+  db.ref('auctionState').set("stopped");
   auctionRunning = false;
 
   const team = document.getElementById('currentTeam').innerText;
@@ -592,8 +592,9 @@ function playerSold(){
     currentTeam: "SOLD",
     soldTo: team,
     ts: Date.now()
-  }).catch(e=>console.error('sold write err', e));
+  });
 }
+
 
 /* keyboard admin bidding */
 document.addEventListener('keydown', e=>{
