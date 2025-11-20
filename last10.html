@@ -1,87 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body{
-  margin:0;
-  background:radial-gradient(circle,#06273a,#00101a 70%);
-  font-family:Arial,Helvetica,sans-serif;
-  color:white;
-  -webkit-font-smoothing:antialiased;
-}
-
-/* Heading glow */
-h1{
-  text-align:center;
-  margin-top:30px;
-  color:#00eaff;
-  text-shadow:0 0 15px #00eaff,0 0 30px #00eaff;
-  font-size:36px;
-}
-
-/* Container */
-#listBox{
-  width:90%;
-  max-width:700px;
-  margin:20px auto;
+body {
+  background:#00101a;
+  color:#9ffcff;
+  font-family: Arial;
   padding:20px;
-  border-radius:14px;
-  background:rgba(0,20,35,0.4);
-  box-shadow:0 0 25px rgba(0,240,255,0.35);
 }
-
-/* Each bid row */
-.bid-row{
-  padding:14px 18px;
-  border-radius:10px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:20px;
-  font-weight:600;
-  color:#9ffcff;
-  text-shadow:0 0 6px #00eaff;
-  box-shadow:0 0 18px rgba(0,240,255,0.15);
-}
-
-/* Alternate background */
-.bid-row:nth-child(odd){
-  background:rgba(0,60,80,0.45);
-}
-.bid-row:nth-child(even){
-  background:rgba(0,90,120,0.45);
-}
-
-/* Team name left */
-.team{
+h2 {
+  text-align:center;
   color:#00eaff;
-  font-weight:700;
+  text-shadow:0 0 10px #00eaff;
 }
-
-/* Amount on right */
-.amount{
-  color:#9ffcff;
-  font-weight:700;
+.bidBox{
+  margin:10px auto;
+  max-width:420px;
+  background:#001621;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(0,240,255,0.2);
+  box-shadow:0 0 10px rgba(0,240,255,0.25);
+}
+.line{
+  padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,0.1);
 }
 </style>
 </head>
 
 <body>
-<h1>Last 10 Bids</h1>
 
-<div id="listBox"></div>
+<h2>Last 10 Bids</h2>
+<div id="list" class="bidBox"></div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-// Firebase config (same as main panel)
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -94,23 +54,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const listBox = document.getElementById("listBox");
+const listDiv = document.getElementById('list');
 
-/* LIVE LISTENER for last10Bids */
-db.ref("last10Bids").on("value", snap=>{
-    const arr = snap.val() || [];
-    listBox.innerHTML = "";
-
-    arr.forEach(item=>{
-        const row = document.createElement("div");
-        row.className = "bid-row";
-
-        row.innerHTML = `
-            <div class="team">${item.team}</div>
-            <div class="amount">₹ ${item.amount}</div>
-        `;
-        listBox.appendChild(row);
-    });
+db.ref('last10bids').on('value', snap=>{
+  listDiv.innerHTML = "";
+  const arr = snap.val() || [];
+  arr.forEach(item=>{
+    listDiv.innerHTML += `<div class="line">${item.team} — <b>${item.amount}</b></div>`;
+  });
 });
 </script>
 
