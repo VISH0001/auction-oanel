@@ -13,6 +13,21 @@ body{
   color:white;
   -webkit-font-smoothing:antialiased;
 }
+/* === Neon Pulse Animation for team cells === */
+@keyframes teamGlow {
+  0% {
+    box-shadow: 0 0 6px rgba(0,240,255,0.25);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(0,240,255,0.45);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 6px rgba(0,240,255,0.25);
+    opacity: 0.85;
+  }
+}
 
 /* Top controls */
 .top-panel{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; padding:18px; align-items:center; }
