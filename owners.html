@@ -5,21 +5,19 @@
 <title>Owner Bid Button</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root{
-    --bg:#00121c;
-    --glow:#00eaff;
-    --muted:#9ffcff;
-    --panel:#001822;
-}
+:root{ --bg:#00121c; --glow:#00eaff; --muted:#9ffcff; --panel:#001822; }
 html,body{ height:100%; margin:0; background:var(--bg); font-family:Arial,Helvetica,sans-serif; color:var(--glow); }
 .wrap{ display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
 /* BIG BUTTON (TOP 70%) */
 #bigButtonArea{ height:70%; display:flex; justify-content:center; align-items:center; }
 #bidBtn{ width:70vw; height:70vw; max-width:70vh; max-height:70vh; border-radius:50%; border:none; background:var(--glow); color:#00121c; font-size:36px; font-weight:bold; box-shadow:0 0 40px rgba(0,234,255,0.5); }
+
 /* INFO PANEL */
 #infoPanel{ height:30%; background:var(--panel); padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:center; border-top:2px solid rgba(0,64,96,0.6); }
 .label{ font-size:14px; color:var(--muted); } .value{ font-size:20px; font-weight:700; } .bigvalue{ font-size:28px; font-weight:800; } .full{ grid-column:1 / -1; text-align:center; } #error{ color:#ff6f6f; font-weight:700; }
+.maxbox{ color:#9ffcff; font-weight:700; font-size:16px; }
+.rej{ color:#ff9b9b; font-weight:800; }
 </style>
 </head>
 
@@ -33,8 +31,10 @@ html,body{ height:100%; margin:0; background:var(--bg); font-family:Arial,Helvet
     <div class="label">Your Team</div><div id="ownerTeam" class="value">—</div>
     <div class="label">Current Highest Bid</div><div id="currentBid" class="bigvalue">—</div>
     <div class="label">Highest Bidding Team</div><div id="currentTeam" class="value">—</div>
+    <div class="label">Your Max Bid</div><div id="myMax" class="maxbox">—</div>
     <div class="label">(Secure Key)</div><div id="keyText" class="value">—</div>
     <div id="error" class="full"></div>
+    <div class="full rej" id="rejectionMsg"></div>
   </div>
 </div>
 
@@ -88,6 +88,12 @@ function initFor(teamNum){
     el('ownerTeam').innerText = snap.val() || ('Team '+teamNum);
   });
 
+  // show own max (subscribe to maxBids/<teamNum>)
+  db.ref('maxBids/' + teamNum).on('value', snap=>{
+    const v = snap.val();
+    el('myMax').innerText = (v === 0 || v === null || v === undefined) ? '—' : v;
+  });
+
   // subscribe to live display
   db.ref('liveDisplay').on('value', snap=>{
     const d = snap.val();
@@ -102,6 +108,15 @@ function initFor(teamNum){
       el('bidBtn').disabled = false;
       el('bidBtn').style.opacity = 1;
     }
+  });
+
+  // listen for rejections for this team
+  db.ref('rejections/' + teamNum).on('value', snap=>{
+    const r = snap.val();
+    if(!r){ el('rejectionMsg').innerText = ''; return; }
+    el('rejectionMsg').innerText = `Bid rejected — max allowed ${r.max}. Attempted: ${r.attempted}`;
+    // clear rejection after 7s
+    setTimeout(()=> db.ref('rejections/' + teamNum).remove(), 7000);
   });
 
   // on click -> send latestBid (main panel decides acceptance)
