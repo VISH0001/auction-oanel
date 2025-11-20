@@ -24,7 +24,7 @@ h2 {
 
 /* Container */
 #lineContainer {
-  max-width:320px;   /* SHORTER WIDTH */
+  max-width:320px;   /* SHORT WIDTH */
   margin:0 auto;
 }
 
@@ -81,7 +81,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* --- TEAM COLORS BY NUMBER --- */
+/* --- TEAM COLORS --- */
 const teamColors = {
   1: { bg:"#0b4d6b", glow:"#11b2ff" },
   2: { bg:"#5b1b1b", glow:"#ff4747" },
@@ -100,14 +100,17 @@ db.ref("last10bids").on("value", snap => {
   container.innerHTML = "";
   const arr = snap.val() || [];
 
-  arr.forEach(item => {
+  arr.forEach((item, index) => {
     const teamNum = Number(item.teamNum || 1);
     const colors = teamColors[teamNum] || teamColors[1];
+
+    const opacity = Math.max(0.25, 1 - index * 0.08); // fade older rows
 
     const row = document.createElement("div");
     row.className = "bidRow";
     row.style.background = colors.bg;
     row.style.boxShadow = `0 0 14px ${colors.glow}`;
+    row.style.opacity = opacity;
 
     row.innerHTML = `
       <span>${item.team}</span>
