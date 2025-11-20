@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Player Display</title>
+
+<style>
+    body {
+        margin: 0;
+        background: radial-gradient(circle at center, #022235, #000c15 70%);
+        font-family: Arial, sans-serif;
+        color: #aefbff;
+        overflow-x: hidden;
+        animation: bgGlow 12s infinite alternate ease-in-out;
+    }
+
+    /* Background glow animation */
+    @keyframes bgGlow {
+        0% { background: radial-gradient(circle at center, #022235, #000c15 70%); }
+        100% { background: radial-gradient(circle at center, #03304b, #001121 70%); }
+    }
+
+    .top-input {
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    .top-input input {
+        width: 130px;
+        padding: 18px;
+        font-size: 28px;
+        text-align: center;
+        border-radius: 12px;
+        border: 2px solid #00eaff;
+        background: rgba(0, 20, 30, 0.9);
+        color: #00eaff;
+        box-shadow: 0 0 18px #00eaff;
+    }
+
+    /* CARD WITH PULSING GLOW */
+    .card {
+        width: 50%;
+        margin: 60px auto;
+        padding: 50px;
+        background: rgba(0, 25, 40, 0.7);
+        border-radius: 30px;
+        box-shadow: 0 0 55px #00eaff;
+        text-align: center;
+        animation: pulseGlow 4s infinite ease-in-out alternate;
+    }
+
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 35px #00eaff66; }
+        100% { box-shadow: 0 0 75px #00eaff; }
+    }
+
+    /* PHOTO BOX */
+    .photo-box {
+        width: 520px;
+        height: 650px;
+        border-radius: 20px;
+        border: 3px solid #00eaff;
+        box-shadow: 0 0 35px #00eaff;
+        background: #000;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        animation: photoGlow 6s infinite alternate ease-in-out;
+    }
+
+    @keyframes photoGlow {
+        0% { box-shadow: 0 0 25px #00eaffaa; }
+        100% { box-shadow: 0 0 55px #00eaff; }
+    }
+
+    .photo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        animation: zoomIn 1.2s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes zoomIn {
+        from { transform: scale(0.85); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* DETAILS BELOW IMAGE (NO FADING NOW) */
+    .details {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .details .name {
+        font-size: 70px;
+        font-weight: bold;
+        color: #b6ffff;
+        text-shadow: 0 0 25px #00eaff;
+        opacity: 1 !important;     /* Always visible */
+        animation: none !important; /* Remove fade */
+    }
+
+    .details .role {
+        margin-top: 15px;
+        font-size: 50px;
+        color: #8df7ff;
+        text-shadow: 0 0 18px #00eaff;
+        opacity: 1 !important;     /* Always visible */
+        animation: none !important; /* Remove fade */
+    }
+</style>
+
+</head>
+<body>
+
+<div class="top-input">
+    <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()">
+</div>
+
+<div class="card">
+    <div class="photo-box">
+        <img id="playerPhoto" src="">
+    </div>
+
+    <div class="details">
+        <div class="name" id="playerName"></div>
+        <div class="role" id="playerRole"></div>
+    </div>
+</div>
+
+<script>
+const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
+const sheetName = "Sheet1";
+const url =
+`https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+
+function cleanLink(url) {
+    if (!url) return [];
+    const match = url.match(/[-\w]{25,}/);
+    if (!match) return [];
+    const id = match[0];
+
+    return [
+        `https://drive.google.com/uc?export=view&id=${id}`,
+        `https://drive.google.com/uc?export=download&id=${id}`,
+        `https://drive.google.com/thumbnail?id=${id}`
+    ];
+}
+
+function loadPlayer() {
+    const index = parseInt(document.getElementById("indexInput").value);
+    if (!index) return;
+
+    fetch(url)
+        .then(res => res.text())
+        .then(txt => {
+            const json = JSON.parse(txt.substring(47, txt.length - 2));
+            const rows = json.table.rows;
+
+            if (index < 1 || index > rows.length) return;
+
+            const data = rows[index - 1].c;
+
+            const name = data[0]?.v || "";
+            const role = data[1]?.v || "";
+            const photoRaw = data[2]?.v || "";
+
+            document.getElementById("playerName").textContent = name;
+            document.getElementById("playerRole").textContent = role;
+
+            const img = document.getElementById("playerPhoto");
+            const links = cleanLink(photoRaw);
+
+            let attempt = 0;
+            function tryLoad() {
+                if (attempt >= links.length) return;
+                img.src = links[attempt];
+                img.onerror = () => { attempt++; tryLoad(); };
+            }
+            tryLoad();
+        });
+}
+</script>
+
+</body>
+</html>
+
