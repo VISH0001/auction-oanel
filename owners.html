@@ -104,7 +104,7 @@ function initFor(teamNum){
     }
   });
 
-  // on click -> send latestBid (server/main panel decides acceptance)
+  // on click -> send latestBid (main panel decides acceptance)
   el('bidBtn').onclick = ()=>{
     db.ref('latestBid').set({
       teamNum: teamNum,
