@@ -4,46 +4,60 @@
 <meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body {
-  background:#00101a;
-  color:#9ffcff;
-  font-family: Arial;
-  padding:20px;
+  background: #00101a;
+  color: #dff9ff;
+  font-family: Arial, Helvetica;
+  padding: 25px;
 }
 
+/* Title */
 h2 {
   text-align:center;
   color:#00eaff;
-  text-shadow:0 0 15px #00eaff, 0 0 35px #00eaff;
-  font-size:36px;
-  margin-bottom:30px;
+  font-size:32px;
+  margin-bottom:25px;
+  text-shadow:0 0 12px #00eaff;
 }
 
-/* FULL BOX team-colored */
-.bidRow {
-  width:90%;
-  max-width:700px;
-  margin:12px auto;
-  padding:16px 22px;
-  border-radius:14px;
+/* Team Box Container */
+#list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Each Bid Box */
+.bidItem {
+  margin: 12px 0;
+  padding: 18px 22px;
+  border-radius: 12px;
+
   display:flex;
   justify-content:space-between;
   align-items:center;
-  color:white;
+
   font-size:22px;
   font-weight:600;
-  box-shadow:0 0 18px rgba(0,0,0,0.4);
-  backdrop-filter:blur(6px);
+
+  /* smooth glow */
+  box-shadow: 0 0 18px rgba(0,0,0,0.4);
 }
 
-/* Neon glow around the box (same color) */
-.bidRow.glow {
-  box-shadow:
-    0 0 12px currentColor,
-    0 0 28px currentColor,
-    0 0 40px currentColor;
-}
+/* Universal text color */
+.teamName { color:#ffffff; }
+.bidAmount { color:#ffffff; }
+
+/* TEAM COLORS (background + soft border glow) */
+.t1 { background: linear-gradient(90deg,#005d8f,#003d59); box-shadow:0 0 18px rgba(0,93,143,0.6); }
+.t2 { background: linear-gradient(90deg,#b02b2e,#6a1c1f); box-shadow:0 0 18px rgba(176,43,46,0.6); }
+.t3 { background: linear-gradient(90deg,#c79a23,#7a5e10); box-shadow:0 0 18px rgba(199,154,35,0.6); }
+.t4 { background: linear-gradient(90deg,#50256b,#2d1640); box-shadow:0 0 18px rgba(80,37,107,0.6); }
+.t5 { background: linear-gradient(90deg,#f59f1b,#9a5f0c); box-shadow:0 0 18px rgba(245,159,27,0.6); }
+.t6 { background: linear-gradient(90deg,#1b4fa1,#102e5d); box-shadow:0 0 18px rgba(27,79,161,0.6); }
+.t7 { background: linear-gradient(90deg,#d7267b,#8a144b); box-shadow:0 0 18px rgba(215,38,123,0.6); }
+.t8 { background: linear-gradient(90deg,#df6a00,#8d3f00); box-shadow:0 0 18px rgba(223,106,0,0.6); }
 </style>
 </head>
 
@@ -57,7 +71,6 @@ h2 {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-/* -------------------- Firebase --------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -72,51 +85,27 @@ const db = firebase.database();
 
 const listDiv = document.getElementById('list');
 
-/* ------------- TEAM COLORS (based on team number) ------------- */
-const teamColors = {
-  1: "rgba(255,70,70,0.35)",    // red
-  2: "rgba(0,190,255,0.35)",    // cyan
-  3: "rgba(0,255,120,0.35)",    // green
-  4: "rgba(255,165,0,0.35)",    // orange
-  5: "rgba(255,255,0,0.35)",    // yellow
-  6: "rgba(170,90,255,0.35)",   // purple
-  7: "rgba(255,0,190,0.35)",    // magenta
-  8: "rgba(0,255,255,0.35)"     // aqua
-};
+/* TEAM COLOR MAP — keyed by team number */
+function getTeamClass(teamName) {
+    // extract team number from teamName, e.g. "Team 4"
+    const match = teamName.match(/(\d+)/);
+    if (!match) return "t1";
+    const num = parseInt(match[1]);
+    return "t" + (num >= 1 && num <= 8 ? num : 1);
+}
 
-/* Strong color for glow outline */
-const glowColors = {
-  1: "rgb(255,70,70)",
-  2: "rgb(0,190,255)",
-  3: "rgb(0,255,120)",
-  4: "rgb(255,165,0)",
-  5: "rgb(255,255,0)",
-  6: "rgb(170,90,255)",
-  7: "rgb(255,0,190)",
-  8: "rgb(0,255,255)"
-};
-
-/* ----------------- LISTENER FOR LAST 10 BIDS ----------------- */
-db.ref('last10bids').on('value', snap => {
+db.ref('last10bids').on('value', snap=>{
   listDiv.innerHTML = "";
   const arr = snap.val() || [];
 
-  arr.forEach(item => {
-    const teamNum = item.teamNum || 1;
-    const bg = teamColors[teamNum] || "rgba(255,255,255,0.1)";
-    const glow = glowColors[teamNum] || "#00eaff";
-
-    const row = document.createElement('div');
-    row.className = "bidRow glow";
-    row.style.background = bg;
-    row.style.color = glow;
-
-    row.innerHTML = `
-      <span style="color:white">${item.team}</span>
-      <span style="color:white">${item.amount}</span>
+  arr.forEach(item=>{
+    const teamClass = getTeamClass(item.team);
+    listDiv.innerHTML += `
+      <div class="bidItem ${teamClass}">
+        <div class="teamName">${item.team}</div>
+        <div class="bidAmount">${item.amount}</div>
+      </div>
     `;
-
-    listDiv.appendChild(row);
   });
 });
 </script>
