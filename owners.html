@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bid Button</title>
+<style>
+body{
+    background:#00121c;
+    font-family:Arial;
+    color:#00eaff;
+    text-align:center;
+    padding-top:40px;
+}
+button{
+    width:80%;
+    padding:20px;
+    margin:12px;
+    font-size:24px;
+    border-radius:12px;
+    border:none;
+    background:#00eaff;
+    color:#00121c;
+    font-weight:bold;
+}
+button:hover{
+    filter:brightness(1.25);
+}
+</style>
+</head>
+
+<body>
+
+<h2>Select Your Team</h2>
+
+<button onclick="sendBid(1)">Team A</button>
+<button onclick="sendBid(2)">Team B</button>
+<button onclick="sendBid(3)">Team C</button>
+<button onclick="sendBid(4)">Team D</button>
+<button onclick="sendBid(5)">Team E</button>
+<button onclick="sendBid(6)">Team F</button>
+<button onclick="sendBid(7)">Team G</button>
+<button onclick="sendBid(8)">Team H</button>
+
+<!-- 🔥 Firebase CDN scripts (NOT ES modules) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
+    authDomain: "auction-71c28.firebaseapp.com",
+    databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "auction-71c28",
+    storageBucket: "auction-71c28.firebasestorage.app",
+    messagingSenderId: "92883040612",
+    appId: "1:92883040612:web:473f540c99efc20e8d2271",
+    measurementId: "G-CSTYSDR3HK"
+};
+
+// Init
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Send bid
+function sendBid(teamNum){
+    db.ref("latestBid").set({
+        teamNum: teamNum,
+        time: Date.now()
+    });
+}
+</script>
+
+</body>
+</html>
+
