@@ -292,6 +292,30 @@ db.ref('increments').on('value', snap=>{
   const val = snap.val();
   if(val) loadRulesToForm(val);
 });
+  
+function playerSold() {
+  if (!history.length) return; // no sale if nobody bid yet
+
+  saleLocked = true;
+  db.ref('auctionState').set("sold");
+
+  // Last accepted bid is currentBid, currentTeam
+  const team = document.getElementById('currentTeam').innerText;
+  const bid  = document.getElementById('currentBid').innerText;
+
+  document.getElementById('currentTeam').innerText =
+    `SOLD TO: ${team}`;
+  document.getElementById('currentBid').innerText =
+    `${bid}`;
+
+  // notify owners
+  db.ref('liveDisplay').set({
+    currentBid: bid,
+    currentTeam: "SOLD",
+    soldTo: team,
+    ts: Date.now()
+  });
+}
 
 function saveRules(){
   const arr = [];
@@ -484,7 +508,12 @@ function placeBid(teamNum){
 
 // Undo/Reset
 function undoBid(){
+  // allow undo after sold
+  saleLocked = false;
+  db.ref('auctionState').set("running");
+
   if(history.length === 0) return;
+
   const last = history.pop();
   currentBid = last.bid;
   lastBidTeam = null;
