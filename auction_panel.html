@@ -67,7 +67,15 @@ body{
   background:#00121c;
   border-radius:8px;
   color:var(--neon);
-  border:1px solid rgba(0,240,255,0.25);
+  border:1px solid rgba(0,240,255,0.15);
+  text-align:center;
+
+  /* Glow fix */
+  animation: cellGlow 2.6s ease-in-out infinite;
+  box-shadow:0 0 10px rgba(0,240,255,0.25);
+  transform-origin: center center;
+}
+
 
   /* Text glowing */
   text-shadow:0 0 6px var(--neon), 0 0 12px var(--neon);
