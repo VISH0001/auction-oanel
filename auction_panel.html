@@ -159,23 +159,44 @@ body{
 }
 
 /* RULES TABLE */
-.rules{
-  width:92%;
-  max-width:900px;
-  margin:20px auto;
-  background:#01121a;
-  padding:15px;
-  border-radius:12px;
-  border:1px solid rgba(0,240,255,0.25);
+/* RULES TABLE — FIXED ALIGNMENT */
+.rules {
+  width: 92%;
+  max-width: 900px;
+  margin: 30px auto;
+  background: #01121a;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,240,255,0.25);
 }
 
-.rules input{
-  padding:10px;
-  background:#00121c;
-  border:1px solid rgba(0,240,255,0.25);
-  border-radius:10px;
-  color:var(--neon);
-  width:100%;
+.rules table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rules th {
+  text-align: left;
+  padding: 10px;
+  font-size: 16px;
+  color: var(--neon2);
+  border-bottom: 1px solid rgba(0,240,255,0.25);
+}
+
+.rules td {
+  padding: 8px;
+  vertical-align: middle;
+}
+
+.rules input {
+  width: 100%;
+  padding: 10px;
+  background: #00121c;
+  border: 1px solid rgba(0,240,255,0.25);
+  border-radius: 8px;
+  color: var(--neon);
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
 .undo-reset{
