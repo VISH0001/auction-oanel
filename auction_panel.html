@@ -176,7 +176,7 @@ button:hover{
     <button onclick="resetBid()">Reset</button>
 </div>
 
-<!-- 🔥 Firebase CDN (WORKS ON GITHUB PAGES) -->
+<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -189,19 +189,26 @@ const firebaseConfig = {
     projectId: "auction-71c28",
     storageBucket: "auction-71c28.firebasestorage.app",
     messagingSenderId: "92883040612",
-    appId: "1:92883040612:web:473f540c99efc20e8d2271",
-    measurementId: "G-CSTYSDR3HK"
+    appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// LISTEN FOR INCOMING BIDS
+// LISTEN FOR INCOMING BIDS FROM OWNERS
 db.ref("latestBid").on("value", snapshot => {
     const data = snapshot.val();
     if (!data) return;
     placeBid(data.teamNum);
 });
+
+// UPDATE OWNERS WITH LIVE VALUES
+function updateOwners(){
+    db.ref("liveDisplay").set({
+        currentBid: currentBid,
+        currentTeam: document.getElementById("currentTeam").innerText
+    });
+}
 </script>
 
 <!-- ORIGINAL LOGIC -->
@@ -219,9 +226,12 @@ function applySettings(){
 
 function placeBid(teamNum){
     history.push({ bid: currentBid, team: document.getElementById("currentTeam").innerText });
+
     currentBid += increment;
     const teamName = document.getElementById("t"+teamNum).value;
+
     updateDisplay(teamName);
+    updateOwners();  // 🔥 Updating all owners live
 }
 
 function updateDisplay(team){
@@ -234,15 +244,16 @@ function undoBid(){
     const last = history.pop();
     currentBid = last.bid;
     updateDisplay(last.team);
+    updateOwners();
 }
 
 function resetBid(){
     currentBid = parseInt(document.getElementById("startBid").value);
     history = [];
     updateDisplay("---");
+    updateOwners();
 }
 </script>
 
 </body>
 </html>
-
