@@ -348,6 +348,42 @@ function saveRules(){
   db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); }).catch(err=>{ console.error(err); alert('Save failed'); });
 }
 
+/* ---------- helpers & last10 recorder ---------- */
+function getIncrementFor(bidValue){
+  if(!increments || increments.length === 0) return fallbackInc;
+  for(let i=0;i<increments.length;i++){
+    const r = increments[i];
+    const from = Number(r.from);
+    const to = Number(r.to);
+    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue <= to){
+      return Number(r.inc) || fallbackInc;
+    }
+  }
+  const last = increments[increments.length-1];
+  return (last && Number(last.inc)) ? Number(last.inc) : fallbackInc;
+}
+function updateOwners(){
+  db.ref('liveDisplay').set({
+    currentBid: currentBid,
+    currentTeam: document.getElementById('currentTeam').innerText,
+    ts: Date.now()
+  }).catch(err=> console.error('updateOwners err', err));
+}
+
+/* ---------- RECORD LAST 10 BIDS ---------- */
+function recordBid(teamName, bidAmount){
+  // normalize simple values
+  bidAmount = (Number(bidAmount) || bidAmount);
+  db.ref('last10bids').once('value').then(snap=>{
+    let arr = snap.val() || [];
+    // push new entry
+    arr.push({ team: String(teamName), amount: String(bidAmount), ts: Date.now() });
+    // keep only last 10
+    if(arr.length > 10) arr = arr.slice(arr.length - 10);
+    return db.ref('last10bids').set(arr);
+  }).catch(err => console.error('recordBid err', err));
+}
+
 /* ---------- Auction core ---------- */
 let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
 let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
@@ -405,28 +441,6 @@ function fetchSheetOnce(){
 fetchSheetOnce();
 setInterval(fetchSheetOnce, 10000);
 
-/* ---------- helpers ---------- */
-function getIncrementFor(bidValue){
-  if(!increments || increments.length === 0) return fallbackInc;
-  for(let i=0;i<increments.length;i++){
-    const r = increments[i];
-    const from = Number(r.from);
-    const to = Number(r.to);
-    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue <= to){
-      return Number(r.inc) || fallbackInc;
-    }
-  }
-  const last = increments[increments.length-1];
-  return (last && Number(last.inc)) ? Number(last.inc) : fallbackInc;
-}
-function updateOwners(){
-  db.ref('liveDisplay').set({
-    currentBid: currentBid,
-    currentTeam: document.getElementById('currentTeam').innerText,
-    ts: Date.now()
-  }).catch(err=> console.error('updateOwners err', err));
-}
-
 /* ---------- Auction control (start / sold / reset / undo) ---------- */
 /* Sync auction state */
 db.ref('auctionState').on('value', snap => {
@@ -440,7 +454,6 @@ db.ref('auctionState').on('value', snap => {
 function startAuction(){
   saleLocked = false;
   db.ref('auctionState').set("running");
-  // update local flag
   auctionRunning = true;
 }
 
@@ -453,6 +466,9 @@ function playerSold(){
 
   const team = document.getElementById('currentTeam').innerText;
   const bid  = document.getElementById('currentBid').innerText;
+
+  // record final sold entry
+  recordBid("SOLD TO: " + team, bid);
 
   document.getElementById('currentTeam').innerText = `SOLD TO: ${team}`;
   document.getElementById('currentBid').innerText = `${bid}`;
@@ -523,6 +539,10 @@ function placeBid(teamNum){
     lastBidTeam = teamNum;
     history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
     const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+
+    // record first bid (first accepted equals starting bid)
+    recordBid(teamName, currentBid);
+
     updateDisplay(teamName);
     updateOwners();
     return;
@@ -533,6 +553,10 @@ function placeBid(teamNum){
   history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
   currentBid = Number(currentBid) + Number(inc);
   const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+
+  // record this new bid value
+  recordBid(teamName, currentBid);
+
   updateDisplay(teamName);
   updateOwners();
 }
@@ -551,11 +575,14 @@ function undoBid(){
   updateOwners();
 }
 
-/* reset -> stop auction and clear */
+/* reset -> stop auction and clear last10 */
 function resetBid(){
   db.ref('auctionState').set("stopped");
   auctionRunning = false;
   saleLocked = false;
+
+  // clear last10 bids
+  db.ref('last10bids').set([]);
 
   const newStart = parseInt(document.getElementById('startBid').value,10);
   currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
