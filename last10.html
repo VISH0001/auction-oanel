@@ -4,55 +4,60 @@
 <meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body {
-  background: radial-gradient(circle, #04202e, #000710 70%);
-  color:#9ffcff;
+  background: radial-gradient(circle, #06273a, #00101a 70%);
+  color: #9ffcff;
   font-family: Arial, sans-serif;
-  padding:30px 15px;
-  text-align:center;
+  margin: 0;
+  padding: 30px;
+  text-align: center;
 }
 
-/* Title Glow */
 h2 {
   color:#00eaff;
-  font-size:34px;
+  font-size:32px;
+  text-shadow:0 0 12px #00eaff, 0 0 24px #00eaff;
   margin-bottom:25px;
-  text-shadow:0 0 10px #00eaff, 0 0 25px #00eaff;
 }
 
-/* Main box */
+/* Container */
 #list {
-  margin:0 auto;
-  max-width:480px;
-  padding:0;
+  max-width: 600px;
+  margin: auto;
 }
 
-/* Each bid row (box) */
+/* Box for each bid */
 .bidRow {
-  margin:12px 0;
-  padding:14px 18px;
-  border-radius:12px;
-  font-size:20px;
-  font-weight:600;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  text-shadow:0 0 8px rgba(255,255,255,0.4);
-  border:1px solid rgba(255,255,255,0.15);
-  transition:0.2s;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 10px 0;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 600;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: rgba(0, 20, 30, 0.7);
+  border: 1px solid rgba(0,240,255,0.3);
+  box-shadow: 0 0 12px rgba(0,240,255,0.35), 0 0 24px rgba(0,240,255,0.25);
 }
 
-/* TEAM COLORS */
-.team1 { background:rgba(0,234,255,0.09); border-color:#00eaff; box-shadow:0 0 18px #00eaff55; color:#00eaff; }
-.team2 { background:rgba(63,87,255,0.09); border-color:#3f57ff; box-shadow:0 0 18px #3f57ff55; color:#3f57ff; }
-.team3 { background:rgba(0,255,106,0.09); border-color:#00ff6a; box-shadow:0 0 18px #00ff6a55; color:#00ff6a; }
-.team4 { background:rgba(255,174,0,0.09); border-color:#ffae00; box-shadow:0 0 18px #ffae0055; color:#ffae00; }
-.team5 { background:rgba(165,91,255,0.09); border-color:#a55bff; box-shadow:0 0 18px #a55bff55; color:#a55bff; }
-.team6 { background:rgba(255,75,75,0.09); border-color:#ff4b4b; box-shadow:0 0 18px #ff4b4b55; color:#ff4b4b; }
-.team7 { background:rgba(0,255,213,0.09); border-color:#00ffd5; box-shadow:0 0 18px #00ffd555; color:#00ffd5; }
-.team8 { background:rgba(140,255,0,0.09); border-color:#8cff00; box-shadow:0 0 18px #8cff0055; color:#8cff00; }
+/* Team-specific color glows */
+.t1 { box-shadow:0 0 15px #00eaff; border-color:#00eaff; }
+.t2 { box-shadow:0 0 15px #00ff9d; border-color:#00ff9d; }
+.t3 { box-shadow:0 0 15px #ffd000; border-color:#ffd000; }
+.t4 { box-shadow:0 0 15px #ff5e00; border-color:#ff5e00; }
+.t5 { box-shadow:0 0 15px #8bff00; border-color:#8bff00; }
+.t6 { box-shadow:0 0 15px #ff4df0; border-color:#ff4df0; }
+.t7 { box-shadow:0 0 15px #7a9cff; border-color:#7a9cff; }
+.t8 { box-shadow:0 0 15px #ff6161; border-color:#ff6161; }
+
+/* Text color inside each row */
+.teamName { text-align:left; }
+.amount { text-align:right; color:white; }
 
 </style>
 </head>
@@ -67,7 +72,6 @@ h2 {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -80,27 +84,42 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* DOM */
-const listDiv = document.getElementById('list');
+const listDiv = document.getElementById("list");
 
-/* Listener */
-db.ref('last10bids').on('value', snap=>{
-  listDiv.innerHTML = "";
+/* TEAM COLORS – index based */
+function teamColorClass(teamName) {
+  if (!teamName) return "t1";
+  const name = teamName.toLowerCase();
+
+  if (name.includes("a")) return "t1";   // Team A
+  if (name.includes("b")) return "t2";   // Team B
+  if (name.includes("c")) return "t3";   // Team C
+  if (name.includes("d")) return "t4";   // Team D
+  if (name.includes("e")) return "t5";   // Team E
+  if (name.includes("f")) return "t6";   // Team F
+  if (name.includes("g")) return "t7";   // Team G
+  if (name.includes("h")) return "t8";   // Team H
+
+  return "t1";
+}
+
+/* Listen for last10bids updates */
+db.ref("last10bids").on("value", snap => {
   const arr = snap.val() || [];
+  listDiv.innerHTML = "";
 
-  arr.forEach(item=>{
-    const t = item.teamNum || 1;
-    const name = item.team || "Team ?";
-    const amt = item.amount || 0;
+  arr.forEach(item => {
+    const cls = teamColorClass(item.team);
 
     listDiv.innerHTML += `
-      <div class="bidRow team${t}">
-        <span style="text-align:left;">${name}</span>
-        <span style="text-align:right;">${amt}</span>
+      <div class="bidRow ${cls}">
+        <div class="teamName">${item.team}</div>
+        <div class="amount">${item.amount}</div>
       </div>
     `;
   });
 });
+
 </script>
 
 </body>
