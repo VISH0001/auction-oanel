@@ -577,23 +577,31 @@ function resetBid(){
 /* player sold */
 function playerSold(){
   if (!history.length) return;
+
   saleLocked = true;
   db.ref('auctionState').set("stopped");
   auctionRunning = false;
 
-  const team = document.getElementById('currentTeam').innerText;
-  const bid  = document.getElementById('currentBid').innerText;
+  // >>> Capture team BEFORE you overwrite it
+  const teamName = document.getElementById('currentTeam').innerText;
+  const bid = Number(document.getElementById('currentBid').innerText);
 
-  document.getElementById('currentTeam').innerText = `SOLD TO: ${team}`;
-  document.getElementById('currentBid').innerText = `${bid}`;
+  // Update main panel display
+  document.getElementById('currentTeam').innerText = `SOLD TO: ${teamName}`;
+  document.getElementById('currentBid').innerText = bid;
 
+  // Push SOLD entry to owners' live display
   db.ref('liveDisplay').set({
     currentBid: bid,
     currentTeam: "SOLD",
-    soldTo: team,
+    soldTo: teamName,
     ts: Date.now()
   });
+
+  // >>> PUSH SOLD ENTRY INTO LAST 10
+  pushToLast10(lastBidTeam, bid, `SOLD TO: ${teamName}`);
 }
+
 
 
 /* keyboard admin bidding */
