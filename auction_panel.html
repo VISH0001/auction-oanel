@@ -145,23 +145,18 @@ button:hover{
 
 <!-- DISPLAY -->
 <div class="display">
-
     <div style="
         font-size:32px;
         color:#9ffcff;
         margin-bottom:20px;
         text-shadow:0 0 15px #00eaff;
-        letter-spacing:2px;
-    ">
+        letter-spacing:2px;">
         CURRENT BID
     </div>
 
     <div class="big-bid" id="currentBid">100</div>
-
     <div class="team-label" id="currentTeam">---</div>
-
 </div>
-
 
 <!-- TEAM GRID -->
 <div class="team-grid">
@@ -181,14 +176,12 @@ button:hover{
     <button onclick="resetBid()">Reset</button>
 </div>
 
+<!-- 🔥 Firebase CDN (WORKS ON GITHUB PAGES) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<!-- 🔥 FIREBASE INITIALIZATION -->
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } 
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
-
+<script>
+// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
     authDomain: "auction-71c28.firebaseapp.com",
@@ -200,31 +193,23 @@ const firebaseConfig = {
     measurementId: "G-CSTYSDR3HK"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// we will add realtime logic NEXT
-
-// LISTEN FOR INCOMING BIDS FROM FIREBASE
-onValue(ref(db, "latestBid"), snapshot => {
+// LISTEN FOR INCOMING BIDS
+db.ref("latestBid").on("value", snapshot => {
     const data = snapshot.val();
     if (!data) return;
-    window.placeBid(data.teamNum);
+    placeBid(data.teamNum);
 });
-
-
 </script>
 
-
-<!-- ORIGINAL JS LOGIC -->
+<!-- ORIGINAL LOGIC -->
 <script>
-
 let currentBid = 100;
 let increment = 10;
 let history = [];
 
-// APPLY SETTINGS
 function applySettings(){
     currentBid = parseInt(document.getElementById("startBid").value);
     increment = parseInt(document.getElementById("increment").value);
@@ -232,39 +217,25 @@ function applySettings(){
     updateDisplay("---");
 }
 
-// KEYPRESS HANDLER
-document.addEventListener("keydown", e => {
-    if(e.key >= "1" && e.key <= "8"){
-        placeBid(parseInt(e.key));
-    }
-});
-
-// PLACE BID
 function placeBid(teamNum){
     history.push({ bid: currentBid, team: document.getElementById("currentTeam").innerText });
-
     currentBid += increment;
     const teamName = document.getElementById("t"+teamNum).value;
-
     updateDisplay(teamName);
 }
 
-// UPDATE DISPLAY
 function updateDisplay(team){
     document.getElementById("currentBid").innerText = currentBid;
     document.getElementById("currentTeam").innerText = team;
 }
 
-// UNDO
 function undoBid(){
     if(history.length === 0) return;
-
     const last = history.pop();
     currentBid = last.bid;
     updateDisplay(last.team);
 }
 
-// RESET
 function resetBid(){
     currentBid = parseInt(document.getElementById("startBid").value);
     history = [];
