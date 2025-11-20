@@ -11,12 +11,14 @@ body{
   background:radial-gradient(circle,#06273a,#00101a 70%);
   font-family:Arial,Helvetica,sans-serif;
   color:white;
+  -webkit-font-smoothing:antialiased;
 }
 
 /* Top controls */
 .top-panel{
   display:flex;
-  gap:14px;
+  gap:12px;
+  flex-wrap:wrap;
   justify-content:center;
   padding:18px;
   align-items:center;
@@ -53,10 +55,11 @@ body{
   cursor:pointer;
 }
 
-/* Current bid area */
+/* Display */
 .display{
   margin:18px auto;
-  width:420px;
+  width:92%;
+  max-width:760px;
   background:#00111a;
   padding:28px;
   border-radius:14px;
@@ -79,7 +82,8 @@ body{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:12px;
-  width:88%;
+  width:92%;
+  max-width:880px;
   margin:20px auto;
 }
 .team-cell{
@@ -98,14 +102,33 @@ body{
   border:1px solid rgba(0,240,255,0.08);
 }
 
+/* Increment rules table */
+.rules {
+  width:92%;
+  max-width:880px;
+  margin:12px auto;
+  background:#01121a;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(0,240,255,0.06);
+}
+.rules .row{
+  display:flex;
+  gap:8px;
+  margin-bottom:8px;
+  align-items:center;
+}
+.rules label{ width:70px; color:var(--neon2); font-size:13px; }
+.rules input{ padding:8px; border-radius:6px; border:1px solid rgba(0,240,255,0.08); background:#00121c; color:var(--neon); width:100%; }
+
+/* Undo / Reset area */
 .undo-reset{
   text-align:center;
-  padding:12px;
+  padding:18px;
 }
-.small{
-  font-size:12px;
-  color:#9ffcff;
-}
+
+.small{ font-size:12px; color:#9ffcff; }
+.footer-note{ text-align:center; color:#9ffcff; margin-bottom:12px; }
 </style>
 </head>
 
@@ -119,39 +142,87 @@ body{
   </div>
 
   <div class="control-box">
-    <label>Increment</label>
-    <input id="bidInc" type="number" value="10">
+    <label>Default Inc</label>
+    <input id="fallbackInc" type="number" value="10">
   </div>
 
   <button class="button" onclick="applySettings()">Apply</button>
 </div>
 
-<!-- DISPLAY AREA -->
+<!-- DISPLAY -->
 <div class="display">
-  <div style="font-size:22px; color:#9ffcff; margin-bottom:12px;">CURRENT BID</div>
+  <div style="font-size:18px; color:#9ffcff; margin-bottom:8px;">CURRENT BID</div>
   <div class="big-bid" id="currentBid">100</div>
   <div class="team-label" id="currentTeam">---</div>
 </div>
 
-<div style="width:95%; margin:auto; text-align:center;">
-  <div class="small">Edit team names below — updates sync to owners immediately.</div>
-</div>
+<div class="footer-note">Edit team names and increment rules below — changes sync to owners instantly.</div>
 
-<!-- TEAM NAME EDIT GRID -->
+<!-- TEAM EDIT GRID -->
 <div class="team-grid" id="teamGrid"></div>
 
-<!-- Undo / Reset -->
+<!-- INCREMENT RULES (5 rules) -->
+<div class="rules" id="rulesBox">
+  <div style="display:flex;gap:8px;margin-bottom:8px;">
+    <div style="width:60px;color:var(--neon2);font-weight:700">Rule</div>
+    <div style="flex:1;color:var(--neon2);font-weight:700">From (inclusive)</div>
+    <div style="flex:1;color:var(--neon2);font-weight:700">To (exclusive)</div>
+    <div style="width:140px;color:var(--neon2);font-weight:700">Increment</div>
+  </div>
+
+  <!-- Five rows -->
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">1</div>
+    <input id="r1_from" placeholder="e.g. 1" />
+    <input id="r1_to"   placeholder="e.g. 5" />
+    <input id="r1_inc"  placeholder="e.g. 1" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">2</div>
+    <input id="r2_from" placeholder="e.g. 5" />
+    <input id="r2_to"   placeholder="e.g. 11" />
+    <input id="r2_inc"  placeholder="e.g. 2" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">3</div>
+    <input id="r3_from" placeholder="e.g. 11" />
+    <input id="r3_to"   placeholder="e.g. 20" />
+    <input id="r3_inc"  placeholder="e.g. 3" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">4</div>
+    <input id="r4_from" placeholder="e.g. 20" />
+    <input id="r4_to"   placeholder="e.g. 50" />
+    <input id="r4_inc"  placeholder="e.g. 5" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">5</div>
+    <input id="r5_from" placeholder="e.g. 50" />
+    <input id="r5_to"   placeholder="e.g. 9999" />
+    <input id="r5_inc"  placeholder="e.g. 10" />
+  </div>
+
+  <div style="text-align:right; margin-top:6px;">
+    <button class="button" onclick="saveRules()">Save Rules</button>
+  </div>
+</div>
+
 <div class="undo-reset">
   <button class="button" onclick="undoBid()">Undo</button>
   <button class="button" onclick="resetBid()">Reset</button>
+  <div style="margin-top:8px;" class="small">First bid equals starting bid (no increment). Later bids use dynamic increments above.</div>
 </div>
 
-<!-- Firebase -->
+<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-// Firebase config
+/* ---------- Firebase config ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -161,122 +232,189 @@ const firebaseConfig = {
   messagingSenderId: "92883040612",
   appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- SECURE OWNER KEYS ---
+/* ---------- owner keys + default teams (if needed) ---------- */
 const ownerKeys = {
-  "t1_92fA6k3Z":1,
-  "t2_Qp71xL0S":2,
-  "t3_n88RwA1D":3,
-  "t4_F92amP0L":4,
-  "t5_cH7x9LmQ":5,
-  "t6_B1mZ3kPx":6,
-  "t7_Ux8q21Nv":7,
-  "t8_Yp0mR4Ws":8
+  "t1_92fA6k3Z":1,"t2_Qp71xL0S":2,"t3_n88RwA1D":3,"t4_F92amP0L":4,
+  "t5_cH7x9LmQ":5,"t6_B1mZ3kPx":6,"t7_Ux8q21Nv":7,"t8_Yp0mR4Ws":8
 };
+const defaultTeams = {1:"Team A",2:"Team B",3:"Team C",4:"Team D",5:"Team E",6:"Team F",7:"Team G",8:"Team H"};
 
-// default team names
-const defaultTeams = {
-  1:"Team A",2:"Team B",3:"Team C",4:"Team D",
-  5:"Team E",6:"Team F",7:"Team G",8:"Team H"
-};
-
-// ensure database nodes exist
-db.ref("teams").once("value").then(s=>{ if(!s.exists()) db.ref("teams").set(defaultTeams); });
-db.ref("ownerKeys").once("value").then(s=>{ if(!s.exists()) db.ref("ownerKeys").set(ownerKeys); });
-
-// BUILD TEAM GRID
-const grid = document.getElementById("teamGrid");
-for(let i=1;i<=8;i++){
-  const d=document.createElement("div");
-  d.className="team-cell";
-  d.innerHTML=`<input id="t${i}" data-team="${i}">`;
-  grid.appendChild(d);
-}
-
-// Live team name sync
-db.ref("teams").on("value", snap=>{
-  const teams=snap.val()||defaultTeams;
-  for(let i=1;i<=8;i++){
-    document.getElementById("t"+i).value = teams[i];
+// ensure initial DB nodes
+db.ref('teams').once('value').then(snap=>{ if(!snap.exists()) db.ref('teams').set(defaultTeams); });
+db.ref('ownerKeys').once('value').then(snap=>{ if(!snap.exists()) db.ref('ownerKeys').set(ownerKeys); });
+db.ref('increments').once('value').then(snap=>{
+  if(!snap.exists()){
+    // default 5 rules
+    const defaults = [
+      {from:1, to:5, inc:1},
+      {from:5, to:11, inc:2},
+      {from:11, to:20, inc:3},
+      {from:20, to:50, inc:5},
+      {from:50, to:99999, inc:10}
+    ];
+    db.ref('increments').set(defaults);
   }
 });
 
-// update team names when edited
-let updateTimer;
-grid.addEventListener("input", ()=>{
-  clearTimeout(updateTimer);
-  updateTimer=setTimeout(()=>{
-    const upd={};
-    for(let i=1;i<=8;i++){
-      upd[i] = document.getElementById("t"+i).value || ("Team "+i);
-    }
-    db.ref("teams").set(upd);
-  },400);
-});
-
-// ---------- BID LOGIC ----------
-let currentBid = parseInt(document.getElementById("startBid").value,10) || 100;
-let increment  = parseInt(document.getElementById("bidInc").value,10)  || 10;
-let history = [];
-let lastBidTeam = null;
-
-// Push updates to owners
-function updateOwners(){
-  db.ref("liveDisplay").set({
-    currentBid: currentBid,
-    currentTeam: document.getElementById("currentTeam").innerText,
-    ts: Date.now()
-  });
+/* ---------- UI: build team grid ---------- */
+const teamGrid = document.getElementById('teamGrid');
+for(let i=1;i<=8;i++){
+  const div = document.createElement('div');
+  div.className = 'team-cell';
+  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}">`;
+  teamGrid.appendChild(div);
 }
 
-// apply admin settings (FIXED)
+// sync team names from firebase
+db.ref('teams').on('value', snap=>{
+  const teams = snap.val() || defaultTeams;
+  for(let i=1;i<=8;i++){
+    const el = document.getElementById('t'+i);
+    if(el) el.value = teams[i] || ('Team '+i);
+  }
+});
+
+// when admin edits names, push to firebase
+let tTimer = null;
+teamGrid.addEventListener('input', e=>{
+  if(!e.target.matches('input')) return;
+  clearTimeout(tTimer);
+  tTimer = setTimeout(()=>{
+    const obj = {};
+    for(let i=1;i<=8;i++){
+      obj[i] = document.getElementById('t'+i).value || ('Team '+i);
+    }
+    db.ref('teams').set(obj);
+  }, 400);
+});
+
+/* ---------- INCREMENT RULES UI ---------- */
+// populate rules from firebase
+function loadRulesToForm(rules){
+  if(!rules || !rules.length) return;
+  for(let i=0;i<5;i++){
+    const r = rules[i] || {from:'',to:'',inc:''};
+    document.getElementById(`r${i+1}_from`).value = r.from===undefined ? '' : r.from;
+    document.getElementById(`r${i+1}_to`).value   = r.to===undefined ? '' : r.to;
+    document.getElementById(`r${i+1}_inc`).value  = r.inc===undefined ? '' : r.inc;
+  }
+}
+db.ref('increments').on('value', snap=>{
+  const val = snap.val();
+  if(val) loadRulesToForm(val);
+});
+
+// save rules function
+function saveRules(){
+  const arr = [];
+  for(let i=1;i<=5;i++){
+    const from = parseFloat(document.getElementById(`r${i}_from`).value) || 0;
+    const to   = parseFloat(document.getElementById(`r${i}_to`).value) || 0;
+    const inc  = parseFloat(document.getElementById(`r${i}_inc`).value) || 0;
+    arr.push({from: from, to: to, inc: inc});
+  }
+  // simple normalization: sort by "from"
+  arr.sort((a,b)=> a.from - b.from);
+  // write to DB
+  db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); });
+}
+
+/* ---------- Auction core (with first-bid behavior + dynamic increments) ---------- */
+let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
+let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
+let history = [];
+let lastBidTeam = null;   // team number of last accepted bid
+let increments = [];      // array of rules from firebase
+
+// load increments into memory for quick lookup
+db.ref('increments').on('value', snap=>{
+  increments = snap.val() || [];
+  // ensure sorted by from
+  increments.sort((a,b)=> (a.from||0) - (b.from||0));
+});
+
+// helper: get increment for a given currentBid value
+function getIncrementFor(bidValue){
+  if(!increments || increments.length === 0) return fallbackInc;
+  // try find rule where bidValue >= from && bidValue < to
+  for(let i=0;i<increments.length;i++){
+    const r = increments[i];
+    const from = parseFloat(r.from);
+    const to = parseFloat(r.to);
+    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue < to){
+      return Number(r.inc) || fallbackInc;
+    }
+  }
+  // if nothing matched, use last rule's inc if present
+  const last = increments[increments.length-1];
+  return (last && Number(last.inc)) ? Number(last.inc) : fallbackInc;
+}
+
+// update owners with liveDisplay
+function updateOwners(){
+  db.ref('liveDisplay').set({
+    currentBid: currentBid,
+    currentTeam: document.getElementById('currentTeam').innerText,
+    ts: Date.now()
+  }).catch(err=> console.error('updateOwners err', err));
+}
+
+// apply settings
 function applySettings(){
-  const newStart = parseInt(document.getElementById("startBid").value,10);
-  const newInc   = parseInt(document.getElementById("bidInc").value,10);
-
+  const newStart = parseInt(document.getElementById('startBid').value,10);
+  const newFallback = parseInt(document.getElementById('fallbackInc').value,10);
   if(!Number.isNaN(newStart)) currentBid = newStart;
-  if(!Number.isNaN(newInc))   increment  = newInc;
-
+  if(!Number.isNaN(newFallback)) fallbackInc = newFallback;
   lastBidTeam = null;
   history = [];
-  updateDisplay("---");
+  updateDisplay('---');
   updateOwners();
 }
 
-// UI update
+// update display helper
 function updateDisplay(team){
-  document.getElementById("currentBid").innerText=currentBid;
-  document.getElementById("currentTeam").innerText=team;
+  document.getElementById('currentBid').innerText = currentBid;
+  document.getElementById('currentTeam').innerText = team;
 }
 
-// place bid
+// placeBid: with first-bid special rule
 function placeBid(teamNum){
-  // 🔥 PREVENT SAME TEAM FROM BIDDING TWICE
+  // ignore if repeated by same team
   if(lastBidTeam === teamNum){
-    console.log("Ignored: same team cannot bid twice in a row");
+    console.log('Ignored: same team cannot bid twice in a row');
     return;
   }
 
+  // Determine whether this is the very first accepted bid after reset/history empty
+  const isFirstAccepted = (history.length === 0);
+
+  // If it's the first accepted bid, it should not increment currentBid
+  if(isFirstAccepted){
+    // Accept bid at current price (no increment)
+    lastBidTeam = teamNum;
+    history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
+    const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+    updateDisplay(teamName);
+    updateOwners();
+    return;
+  }
+
+  // Normal flow: apply dynamic increment based on currentBid
+  const inc = getIncrementFor(currentBid);
   lastBidTeam = teamNum;
-
-  history.push({
-    bid: currentBid,
-    team: document.getElementById("currentTeam").innerText
-  });
-
-  currentBid += increment;
-
-  const name = document.getElementById("t"+teamNum).value || ("Team "+teamNum);
-  updateDisplay(name);
+  history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
+  currentBid = Number(currentBid) + Number(inc);
+  const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+  updateDisplay(teamName);
   updateOwners();
 }
 
 // Undo
 function undoBid(){
-  if(history.length===0) return;
+  if(history.length === 0) return;
   const last = history.pop();
   currentBid = last.bid;
   lastBidTeam = null;
@@ -286,32 +424,39 @@ function undoBid(){
 
 // Reset
 function resetBid(){
-  currentBid = parseInt(document.getElementById("startBid").value,10) || 100;
+  const newStart = parseInt(document.getElementById('startBid').value,10);
+  currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
+  history = [];
   lastBidTeam = null;
-  history=[];
-  updateDisplay("---");
+  updateDisplay('---');
   updateOwners();
 }
 
-// Keyboard admin bidding: 1–8
-document.addEventListener("keydown", e=>{
-  if(e.key >= "1" && e.key <= "8"){
-    placeBid(Number(e.key));
+// keyboard admin bidding: 1..8
+document.addEventListener('keydown', e=>{
+  if(e.key >= '1' && e.key <= '8'){
+    placeBid(parseInt(e.key,10));
   }
 });
 
-// Owner-triggered bids
+// Listen for owner bids (latestBid node)
 let lastSeenTime = 0;
-db.ref("latestBid").on("value", snap=>{
-  const d=snap.val();
-  if(!d || !d.time) return;
-  if(d.time <= lastSeenTime) return;
-  lastSeenTime = d.time;
-  placeBid(d.teamNum);
+db.ref('latestBid').on('value', snap=>{
+  const data = snap.val();
+  if(!data) return;
+  if(!data.time || data.time <= lastSeenTime) return;
+  lastSeenTime = data.time;
+  // validate team number is numeric
+  const tnum = Number(data.teamNum);
+  if(!tnum || tnum < 1 || tnum > 8) return;
+  placeBid(tnum);
 });
 
 // initial sync
-window.onload = ()=> updateOwners();
+window.addEventListener('load', ()=>{
+  updateDisplay('---');
+  updateOwners();
+});
 </script>
 
 </body>
