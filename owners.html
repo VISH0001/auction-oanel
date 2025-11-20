@@ -11,111 +11,38 @@
     --muted:#9ffcff;
     --panel:#001822;
 }
-html,body{
-    height:100%;
-    margin:0;
-    background:var(--bg);
-    font-family:Arial,Helvetica,sans-serif;
-    color:var(--glow);
-}
-.wrap{
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-    overflow:hidden;
-}
+html,body{ height:100%; margin:0; background:var(--bg); font-family:Arial,Helvetica,sans-serif; color:var(--glow); }
+.wrap{ display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
 /* BIG BUTTON (TOP 70%) */
-#bigButtonArea{
-    height:70%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-#bidBtn{
-    width:70vw;
-    height:70vw;
-    max-width:70vh;
-    max-height:70vh;
-    border-radius:50%;
-    border:none;
-    background:var(--glow);
-    color:#00121c;
-    font-size:36px;
-    font-weight:bold;
-    box-shadow:0 0 40px rgba(0,234,255,0.5);
-}
-#bidBtn:active{
-    transform:scale(0.96);
-}
-
-/* INFO PANEL (BOTTOM 30%) */
-#infoPanel{
-    height:30%;
-    background:var(--panel);
-    padding:16px;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    align-items:center;
-    gap:8px;
-    border-top:2px solid rgba(0,64,96,0.6);
-}
-.label{
-    font-size:14px;
-    color:var(--muted);
-}
-.value{
-    font-size:20px;
-    font-weight:700;
-}
-.bigvalue{
-    font-size:28px;
-    font-weight:800;
-}
-.full{
-    grid-column:1 / -1;
-    text-align:center;
-}
-#error{
-    color:#ff6f6f;
-    font-weight:700;
-}
+#bigButtonArea{ height:70%; display:flex; justify-content:center; align-items:center; }
+#bidBtn{ width:70vw; height:70vw; max-width:70vh; max-height:70vh; border-radius:50%; border:none; background:var(--glow); color:#00121c; font-size:36px; font-weight:bold; box-shadow:0 0 40px rgba(0,234,255,0.5); }
+/* INFO PANEL */
+#infoPanel{ height:30%; background:var(--panel); padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:center; border-top:2px solid rgba(0,64,96,0.6); }
+.label{ font-size:14px; color:var(--muted); } .value{ font-size:20px; font-weight:700; } .bigvalue{ font-size:28px; font-weight:800; } .full{ grid-column:1 / -1; text-align:center; } #error{ color:#ff6f6f; font-weight:700; }
 </style>
 </head>
 
 <body>
 <div class="wrap">
+  <div id="bigButtonArea">
+    <button id="bidBtn">BID</button>
+  </div>
 
-    <!-- BIG BUTTON -->
-    <div id="bigButtonArea">
-        <button id="bidBtn">BID</button>
-    </div>
-
-    <!-- INFO PANEL -->
-    <div id="infoPanel">
-        <div class="label">Your Team</div>
-        <div id="ownerTeam" class="value">—</div>
-
-        <div class="label">Current Highest Bid</div>
-        <div id="currentBid" class="bigvalue">—</div>
-
-        <div class="label">Highest Bidding Team</div>
-        <div id="currentTeam" class="value">—</div>
-
-        <div class="label">(Secure Key)</div>
-        <div id="keyText" class="value">—</div>
-
-        <div id="error" class="full"></div>
-    </div>
-
+  <div id="infoPanel">
+    <div class="label">Your Team</div><div id="ownerTeam" class="value">—</div>
+    <div class="label">Current Highest Bid</div><div id="currentBid" class="bigvalue">—</div>
+    <div class="label">Highest Bidding Team</div><div id="currentTeam" class="value">—</div>
+    <div class="label">(Secure Key)</div><div id="keyText" class="value">—</div>
+    <div id="error" class="full"></div>
+  </div>
 </div>
 
-<!-- Firebase CDN -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
     authDomain: "auction-71c28.firebaseapp.com",
@@ -125,74 +52,69 @@ const firebaseConfig = {
     messagingSenderId: "92883040612",
     appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-function el(x){ return document.getElementById(x); }
-function error(msg){ el("error").innerText = msg || ""; }
 
-// ---- READ KEY FROM URL ----
+function el(id){ return document.getElementById(id); }
+function showError(msg){ el('error').innerText = msg || ''; }
+
 const params = new URLSearchParams(window.location.search);
-const key = params.get("key");
-el("keyText").innerText = key || "none";
+const key = params.get('key');
+el('keyText').innerText = key || 'none';
 
-if(!key){
-    error("No secure key provided.");
-    lockButton();
+if(!key){ showError('No secure key provided.'); lock(); }
+let myTeam = null;
+
+function lock(){
+  el('bidBtn').disabled = true;
+  el('bidBtn').style.opacity = 0.4;
 }
 
-// TEAM NUMBER RESOLVED VIA ownerKeys[key]
-let myTeamNum = null;
-
-db.ref("ownerKeys/"+key).once("value").then(snap=>{
-    const t = snap.val();
-    if(!t){
-        error("Invalid or expired key.");
-        lockButton();
-        return;
-    }
-    myTeamNum = t;
-    initOwner(myTeamNum);
+// validate key -> get team number
+db.ref('ownerKeys/' + key).once('value').then(snap=>{
+  const t = snap.val();
+  if(!t){ showError('Invalid key. Contact admin.'); lock(); return; }
+  myTeam = t;
+  initFor(myTeam);
+}).catch(err=>{
+  showError('Network error validating key.');
+  lock();
+  console.error(err);
 });
 
-// ---- DISABLE BUTTON ----
-function lockButton(){
-    el("bidBtn").disabled = true;
-    el("bidBtn").style.opacity = 0.4;
-}
+function initFor(teamNum){
+  // show live team name
+  db.ref('teams/' + teamNum).on('value', snap=>{
+    el('ownerTeam').innerText = snap.val() || ('Team '+teamNum);
+  });
 
-// ---- INITIALIZE PAGE ----
-function initOwner(teamNum){
+  // subscribe to live display
+  db.ref('liveDisplay').on('value', snap=>{
+    const d = snap.val();
+    if(!d) return;
+    el('currentBid').innerText = d.currentBid ?? '—';
+    el('currentTeam').innerText = d.currentTeam ?? '—';
 
-    // Live team name sync
-    db.ref("teams/"+teamNum).on("value", snap=>{
-        el("ownerTeam").innerText = snap.val() || ("Team "+teamNum);
+    // UI-level prevention: if highest bidder is this owner, disable button
+    if(d.currentTeam === el('ownerTeam').innerText){
+      lock();
+    } else {
+      el('bidBtn').disabled = false;
+      el('bidBtn').style.opacity = 1;
+    }
+  });
+
+  // on click -> send latestBid (server/main panel decides acceptance)
+  el('bidBtn').onclick = ()=>{
+    db.ref('latestBid').set({
+      teamNum: teamNum,
+      time: Date.now()
+    }).catch(err=>{
+      showError('Failed to send bid.');
+      console.error(err);
     });
-
-    // Live highest bid & team
-    db.ref("liveDisplay").on("value", snap=>{
-        const d = snap.val(); if(!d) return;
-        el("currentBid").innerText = d.currentBid ?? "—";
-        el("currentTeam").innerText = d.currentTeam ?? "—";
-
-        // Prevent repeated self-bidding
-        if(d.currentTeam === el("ownerTeam").innerText){
-            lockButton();
-        } else {
-            el("bidBtn").disabled = false;
-            el("bidBtn").style.opacity = 1;
-        }
-    });
-
-    // SEND BID
-    el("bidBtn").onclick = ()=>{
-        db.ref("latestBid").set({
-            teamNum: teamNum,
-            time: Date.now()
-        });
-    };
+  };
 }
 </script>
-
 </body>
 </html>
