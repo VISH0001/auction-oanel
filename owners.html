@@ -3,93 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <title>Owner Bid Button</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{
-    margin:0;
-    background:#00121c;
-    font-family:Arial;
-    color:#00eaff;
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-    overflow:hidden;
-}
-
-/* TOP 70% BIG BUTTON */
-#bigButtonArea{
-    height:70%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-#bidBtn{
-    width:70vw;
-    height:70vw;
-    max-width:70vh;
-    max-height:70vh;
-    border-radius:50%;
-    background:#00eaff;
-    color:#00121c;
-    font-size:36px;
-    font-weight:bold;
-    border:none;
-    box-shadow:0 0 40px #00eaff;
-}
-#bidBtn:active{
-    transform:scale(0.96);
-}
-
-/* BOTTOM 30% INFO PANEL */
-#infoPanel{
-    height:30%;
-    background:#001822;
-    padding:20px;
-    text-align:center;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-around;
-    border-top:2px solid #003040;
-}
-
-.info-text{
-    font-size:26px;
-    color:#9ffcff;
-}
-.value{
-    font-size:36px;
-    font-weight:bold;
-    color:#00eaff;
-}
+  :root{ --bg:#00121c; --glow:#00eaff; --muted:#9ffcff; --panel:#001822; }
+  html,body{ height:100%; margin:0; background:var(--bg); font-family:Arial,Helvetica,sans-serif; color:var(--glow); }
+  .wrap{ display:flex; flex-direction:column; height:100vh; }
+  #bigButtonArea{ height:70%; display:flex; align-items:center; justify-content:center; }
+  #bidBtn{
+    width:70vw; height:70vw; max-width:70vh; max-height:70vh;
+    border-radius:50%; border:0; background:var(--glow); color:#00121c;
+    font-size:34px; font-weight:700; box-shadow:0 0 40px rgba(0,234,255,0.12);
+    touch-action:manipulation;
+  }
+  #bidBtn:active{ transform:scale(.97); }
+  #infoPanel{
+    height:30%; background:var(--panel); padding:14px; box-sizing:border-box;
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:center;
+    border-top:2px solid rgba(0,64,96,0.6);
+  }
+  .label{ font-size:14px; color:var(--muted); }
+  .value{ font-size:20px; font-weight:700; color:var(--glow); }
+  .bigvalue{ font-size:28px; font-weight:800; color:#fff; }
+  .full{ grid-column:1 / -1; text-align:center; }
+  #error{ color:#ff7b7b; font-weight:700; }
+  @media (min-width:800px){ #bidBtn{ font-size:40px; } .value{ font-size:22px; } }
 </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div id="bigButtonArea">
+      <button id="bidBtn">BID</button>
+    </div>
 
-<!-- BIG BUTTON -->
-<div id="bigButtonArea">
-    <button id="bidBtn">BID</button>
-</div>
+    <div id="infoPanel">
+      <div class="label">Your Team</div>
+      <div id="ownerTeam" class="value">—</div>
 
-<!-- INFO PANEL -->
-<div id="infoPanel">
-    <div class="info-text">Your Team:</div>
-    <div id="ownerTeam" class="value">---</div>
+      <div class="label">Current Highest Bid</div>
+      <div id="currentBid" class="bigvalue">—</div>
 
-    <div class="info-text">Current Highest Bid:</div>
-    <div id="currentBid" class="value">---</div>
+      <div class="label">Highest Bidding Team</div>
+      <div id="currentTeam" class="value">—</div>
 
-    <div class="info-text">Highest Bidding Team:</div>
-    <div id="currentTeam" class="value">---</div>
-</div>
+      <div class="label">(Your secure key)</div>
+      <div id="keyText" class="value">—</div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+      <div id="error" class="full"></div>
+    </div>
+  </div>
 
-<script>
-// Firebase config
-const firebaseConfig = {
+  <!-- Firebase CDN v8 (works on GitHub Pages / Netlify / mobile) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+  // ---------- CONFIG ----------
+  const firebaseConfig = {
     apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
     authDomain: "auction-71c28.firebaseapp.com",
     databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -97,41 +66,81 @@ const firebaseConfig = {
     storageBucket: "auction-71c28.firebasestorage.app",
     messagingSenderId: "92883040612",
     appId: "1:92883040612:web:473f540c99efc20e8d2271"
-};
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+  // ---------- UTIL ----------
+  function el(id){ return document.getElementById(id); }
+  function showError(msg){ el('error').innerText = msg || ''; }
 
-// READ TEAM FROM URL
-const urlParams = new URLSearchParams(window.location.search);
-let teamNum = parseInt(urlParams.get("team"));
-if(!teamNum || teamNum < 1 || teamNum > 8) teamNum = 1;
+  // ---------- READ KEY FROM URL ----------
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get('key') || params.get('team'); // keep backwards compatibility if someone used ?team= earlier
+  el('keyText').innerText = key || 'none';
 
-const teams = {
-    1: "Team A", 2: "Team B", 3: "Team C", 4: "Team D",
-    5: "Team E", 6: "Team F", 7: "Team G", 8: "Team H"
-};
-
-// Display owner's team name
-document.getElementById("ownerTeam").innerText = teams[teamNum];
-
-// SEND BID WHEN BUTTON IS PRESSED
-document.getElementById("bidBtn").onclick = () => {
-    db.ref("latestBid").set({
-        teamNum: teamNum,
-        time: Date.now()
+  // ---------- VALIDATE KEY (ownerKeys -> team number) ----------
+  if(!key){
+    showError('No access key provided. Use the secure link assigned to your team.');
+    disableButton();
+  } else {
+    // read mapping once
+    db.ref('ownerKeys/' + key).once('value').then(snap=>{
+      const teamNum = snap.val();
+      if(!teamNum){
+        showError('Invalid or expired key. Contact admin.');
+        disableButton();
+        return;
+      }
+      // valid: store and initialize UI
+      initForTeam(teamNum, key);
+    }).catch(err=>{
+      showError('Network error validating key.');
+      disableButton();
+      console.error(err);
     });
-};
+  }
 
-// RECEIVE LIVE UPDATES FROM MAIN PANEL
-db.ref("liveDisplay").on("value", snapshot=>{
-    const data = snapshot.val();
-    if(!data) return;
+  function disableButton(){
+    el('bidBtn').disabled = true;
+    el('bidBtn').style.opacity = 0.6;
+  }
 
-    document.getElementById("currentBid").innerText = data.currentBid;
-    document.getElementById("currentTeam").innerText = data.currentTeam;
-});
-</script>
+  // ---------- MAIN OWNER INIT ----------
+  let myTeamNum = null;
+  function initForTeam(teamNum, key){
+    myTeamNum = parseInt(teamNum,10);
+    // show owner's team name (live)
+    db.ref('teams/' + myTeamNum).on('value', snap=>{
+      const name = snap.val() || ('Team ' + myTeamNum);
+      el('ownerTeam').innerText = name;
+    });
 
+    // subscribe to liveDisplay for current highest bid & team
+    db.ref('liveDisplay').on('value', snap=>{
+      const data = snap.val();
+      if(!data) return;
+      el('currentBid').innerText = (data.currentBid === undefined) ? '—' : data.currentBid;
+      el('currentTeam').innerText = data.currentTeam || '—';
+    });
+
+    // enable send-bid
+    el('bidBtn').addEventListener('click', ()=> sendBid(myTeamNum) );
+  }
+
+  // ---------- SEND BID ----------
+  function sendBid(teamNum){
+    // simple rate-limiting: disable button for 600ms to prevent accidental double taps
+    el('bidBtn').disabled = true;
+    setTimeout(()=> el('bidBtn').disabled = false, 600);
+
+    const payload = { teamNum: teamNum, time: Date.now() };
+    db.ref('latestBid').set(payload).catch(err=>{
+      console.error('bid send error',err);
+      showError('Failed to send bid. Check network.');
+    });
+  }
+
+  </script>
 </body>
 </html>
