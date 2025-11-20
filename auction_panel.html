@@ -33,8 +33,10 @@ body{
 
 /* Team grid */
 .team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:92%; max-width:880px; margin:20px auto; }
-.team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); }
+.team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); position:relative; }
 .team-cell input{ width:100%; padding:8px; background:#00121c; border-radius:8px; color:var(--neon); border:1px solid rgba(0,240,255,0.08); }
+/* compact max text under name */
+.team-max{ margin-top:8px; font-size:13px; color:#9ffcff; font-weight:700; }
 
 /* Increment rules table */
 .rules { width:92%; max-width:880px; margin:12px auto; background:#01121a; padding:12px; border-radius:10px; border:1px solid rgba(0,240,255,0.06); }
@@ -73,7 +75,6 @@ body{
   <div style="font-size:18px; color:#9ffcff; margin-bottom:8px;">CURRENT BID</div>
   <div class="big-bid" id="currentBid">100</div>
   <div class="team-label" id="currentTeam">---</div>
-  <div class="max-label" id="currentMax">Max: —</div>
   <div id="rejectionNote" class="rejection"></div>
 </div>
 
@@ -180,12 +181,13 @@ db.ref('increments').once('value').then(snap=>{
   }
 });
 
-/* ---------- UI: build team grid ---------- */
+/* ---------- UI: build team grid with max display under each name (compact B) ---------- */
 const teamGrid = document.getElementById('teamGrid');
 for(let i=1;i<=8;i++){
   const div = document.createElement('div');
   div.className = 'team-cell';
-  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}">`;
+  // input and small max span
+  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}"><div id="t${i}_max" class="team-max">Max: —</div>`;
   teamGrid.appendChild(div);
 }
 
@@ -239,7 +241,7 @@ function saveRules(){
   db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); }).catch(err=>{ console.error(err); alert('Save failed'); });
 }
 
-/* ---------- Auction core (with first-bid + inclusive ranges) ---------- */
+/* ---------- Auction core (with first-bid + inclusive ranges + max enforcement) ---------- */
 let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
 let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
 let history = [];
@@ -253,10 +255,17 @@ db.ref('increments').on('value', snap=>{
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
 });
 
-// keep maxBids mirrored in firebase for owners to read
+// keep maxBids mirrored in firebase for owners to read and for admin UI
 db.ref('maxBids').on('value', snap=>{
   maxBids = snap.val() || {};
-  updateCurrentMaxDisplay();
+  // update each team's max display in the grid
+  for(let i=1;i<=8;i++){
+    const el = document.getElementById(`t${i}_max`);
+    if(el){
+      const v = maxBids[String(i)];
+      el.innerText = 'Max: ' + ((v===undefined || v===null || v===0) ? '—' : v);
+    }
+  }
 });
 
 /* ---------- Google Sheets polling ---------- */
@@ -267,12 +276,10 @@ function fetchSheetOnce(){
   fetch(GVIZ_URL)
     .then(r=>r.text())
     .then(txt=>{
-      // strip the prefix `/*O_o*/google.visualization.Query.setResponse(...);`
       const jsonText = txt.replace(/^[^\(]*\(/,'').replace(/\);?$/,'');
       const obj = JSON.parse(jsonText);
       const rows = obj.table && obj.table.rows && obj.table.rows[0] && obj.table.rows[0].c;
       if(!rows) return;
-      // c is array of cells corresponding to B..I
       const newMax = {};
       for(let i=0;i<8;i++){
         const cell = rows[i];
@@ -282,9 +289,7 @@ function fetchSheetOnce(){
         newMax[String(i+1)] = val;
       }
       maxBids = newMax;
-      // update firebase so owners auto-see new values
       db.ref('maxBids').set(maxBids).catch(e=>console.error('maxBids write err',e));
-      updateCurrentMaxDisplay();
     })
     .catch(err=>{
       console.warn('sheet fetch failed',err);
@@ -295,26 +300,6 @@ fetchSheetOnce();
 setInterval(fetchSheetOnce, 10000);
 
 /* ---------- helpers ---------- */
-function updateCurrentMaxDisplay(){
-  // show current team's max on main display
-  const currTeamText = document.getElementById('currentTeam').innerText;
-  // try match team name to number via teams list
-  db.ref('teams').once('value').then(snap=>{
-    const teams = snap.val() || {};
-    let teamNumber = null;
-    for(const k in teams){
-      if(teams[k] === currTeamText){ teamNumber = k; break; }
-    }
-    // fallback: if current team name is '---' or not found, leave blank
-    if(!teamNumber){
-      // if lastBidTeam set, prefer that
-      if(lastBidTeam) teamNumber = String(lastBidTeam);
-    }
-    const maxText = (teamNumber && maxBids[teamNumber]) ? maxBids[teamNumber] : '—';
-    document.getElementById('currentMax').innerText = 'Max: ' + maxText;
-  });
-}
-
 // helper to get increment for a bidValue (TO inclusive)
 function getIncrementFor(bidValue){
   if(!increments || increments.length === 0) return fallbackInc;
@@ -355,14 +340,12 @@ function applySettings(){
 function updateDisplay(team){
   document.getElementById('currentBid').innerText = currentBid;
   document.getElementById('currentTeam').innerText = team;
-  updateCurrentMaxDisplay();
 }
 
 // compute next bid amount if teamNum attempts to bid (does not change state)
 function computeNextBidAmountIf(teamNum){
   const isFirstAccepted = (history.length === 0);
   if(isFirstAccepted){
-    // first accepted bid uses currentBid
     return currentBid;
   }
   const inc = getIncrementFor(currentBid);
@@ -371,35 +354,26 @@ function computeNextBidAmountIf(teamNum){
 
 // placeBid with max check
 function placeBid(teamNum){
-  // check repeated bidder
   if(lastBidTeam === teamNum){
     console.log('Ignored: same team cannot bid twice in a row');
     return;
   }
 
-  // find max for this team
   const teamMax = Number(maxBids[String(teamNum)] || 0);
-
-  // compute what the resulting bid would be
   const nextValue = computeNextBidAmountIf(teamNum);
 
-  // If nextValue > teamMax AND teamMax > 0, reject
   if(teamMax > 0 && nextValue > teamMax){
-    // write rejection to firebase so owner sees it
     db.ref('rejections/' + String(teamNum)).set({
       time: Date.now(),
       reason: 'exceeds_max',
       max: teamMax,
       attempted: nextValue
     }).catch(e=>console.error('rejection write err',e));
-    // also show the max in admin panel briefly
     document.getElementById('rejectionNote').innerText = `Bid rejected for Team ${teamNum} — max ${teamMax}`;
     setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 7000);
     return;
   }
 
-  // accept bid
-  // treat first accepted bid special (no increment)
   const isFirstAccepted = (history.length === 0);
   if(isFirstAccepted){
     lastBidTeam = teamNum;
@@ -410,7 +384,6 @@ function placeBid(teamNum){
     return;
   }
 
-  // normal increment
   const inc = getIncrementFor(currentBid);
   lastBidTeam = teamNum;
   history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
@@ -420,7 +393,7 @@ function placeBid(teamNum){
   updateOwners();
 }
 
-// Undo/Reset as before
+// Undo/Reset
 function undoBid(){
   if(history.length === 0) return;
   const last = history.pop();
