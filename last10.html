@@ -24,7 +24,7 @@ h2 {
 
 /* Container */
 #lineContainer {
-  max-width:700px;
+  max-width:480px;   /* SHORTER WIDTH */
   margin:0 auto;
 }
 
@@ -34,27 +34,26 @@ h2 {
   justify-content:space-between;
   align-items:center;
 
-  padding:18px 22px;
-  margin:14px 0;
+  padding:16px 20px;
+  margin:12px 0;
 
   border-radius:14px;
   color:white;
-  font-size:20px;
+  font-size:19px;
   font-weight:600;
 
   box-shadow:0 0 18px rgba(0,0,0,0.35);
   transition:0.2s;
 }
 
-/* Light glow around the box */
 .bidRow:hover {
   transform:scale(1.02);
 }
 
-/* RIGHT SIDE (Amount) */
+/* RIGHT SIDE */
 .amount {
   font-weight:700;
-  font-size:22px;
+  font-size:20px;
 }
 </style>
 </head>
@@ -82,7 +81,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* --- TEAM NUMBER COLORS (8 Teams) --- */
+/* --- TEAM COLORS BY NUMBER --- */
 const teamColors = {
   1: { bg:"#0b4d6b", glow:"#11b2ff" },
   2: { bg:"#5b1b1b", glow:"#ff4747" },
@@ -94,7 +93,7 @@ const teamColors = {
   8: { bg:"#7a4b00", glow:"#ffc233" }
 };
 
-/* --- Load & Display --- */
+/* --- Load last10bids live --- */
 const container = document.getElementById("lineContainer");
 
 db.ref("last10bids").on("value", snap => {
@@ -102,17 +101,17 @@ db.ref("last10bids").on("value", snap => {
   const arr = snap.val() || [];
 
   arr.forEach(item => {
-    const teamNum = Number(item.teamNum || 1);   // <-- IMPORTANT FIX
+    const teamNum = Number(item.teamNum || 1);
     const colors = teamColors[teamNum] || teamColors[1];
 
     const row = document.createElement("div");
     row.className = "bidRow";
     row.style.background = colors.bg;
-    row.style.boxShadow = `0 0 16px ${colors.glow}`;
+    row.style.boxShadow = `0 0 14px ${colors.glow}`;
 
     row.innerHTML = `
       <span>${item.team}</span>
-      <span class="amount">${item.amount}</span>
+      <span class="amount">${item.amount} Cr</span>
     `;
 
     container.appendChild(row);
