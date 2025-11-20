@@ -125,10 +125,10 @@ body{
     <input id="fallbackInc" type="number" value="10">
   </div>
 
-  <button class="button" onclick="applySettings()">Apply</button>
+ <button class="button" onclick="undoBid()">Undo</button>
+<button class="button" onclick="playerSold()">Player Sold</button>
+<button class="button" onclick="resetBid()">Reset</button>
 
-  <!-- ⭐ NEW BUTTON ADDED HERE ⭐ -->
-  <button class="button" id="startBtn" onclick="startAuction()" style="background:#00ff95;">
     Start Auction
   </button>
 </div>
@@ -310,6 +310,7 @@ let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
 let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
 let history = [];
 let lastBidTeam = null;   // team number of last accepted bid
+let saleLocked = false;   // prevents bidding after player is sold
 let increments = [];      // array of rules from firebase
 let maxBids = {};         // will be populated from Google Sheets and firebase
 
@@ -433,6 +434,7 @@ function computeNextBidAmountIf(teamNum){
 
 // placeBid with max check
 function placeBid(teamNum){
+  if (saleLocked) return;   // no one can bid when player is sold
     // Block bid if auction not started
   if (!auctionRunning) {
     console.log("Auction not started yet.");
