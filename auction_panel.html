@@ -12,14 +12,16 @@
   --dark:#03121f;
 }
 
+/* BASIC PAGE */
 body{
   margin:0;
   background:radial-gradient(circle,#06273a,#00101a 70%);
   font-family:Arial,Helvetica,sans-serif;
   color:white;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* TOP PANEL */
+/* TOP CONTROLS */
 .top-panel{
   display:flex;
   justify-content:center;
@@ -31,7 +33,7 @@ body{
   padding:14px;
   border-radius:12px;
   background:rgba(0,20,35,0.6);
-  border:1px solid rgba(0,240,255,0.25);
+  border:1px solid rgba(0,240,255,0.12);
 }
 .control-box label{
   font-size:13px;
@@ -44,7 +46,7 @@ body{
   padding:8px;
   background:#00131c;
   border-radius:8px;
-  border:1px solid rgba(0,240,255,0.25);
+  border:1px solid rgba(0,240,255,0.12);
   color:var(--neon);
   text-align:center;
 }
@@ -58,162 +60,182 @@ body{
   font-weight:bold;
   background:var(--neon);
   color:#00131c;
+  box-shadow:0 0 18px rgba(0,240,255,0.12);
 }
 
 /* MAIN DISPLAY */
 .display{
   width:92%;
   max-width:760px;
-  margin:25px auto;
+  margin:18px auto;
   padding:32px;
   border-radius:20px;
   background:#00111a;
-  border:1px solid rgba(0,240,255,0.25);
+  border:1px solid rgba(0,240,255,0.15);
   text-align:center;
   box-shadow:
-    0 0 20px rgba(0,240,255,0.35),
-    0 0 40px rgba(0,240,255,0.25),
-    0 0 60px rgba(0,240,255,0.15);
+    0 0 22px rgba(0,240,255,0.28),
+    0 0 48px rgba(0,240,255,0.20);
   animation: neonPulse 1.8s ease-in-out infinite;
 }
 
 .big-bid{
-  font-size:90px;
+  font-size:84px;
   font-weight:800;
   color:var(--neon);
   text-shadow:
-    0 0 15px var(--neon),
-    0 0 35px var(--neon),
-    0 0 55px var(--neon);
+    0 0 12px var(--neon),
+    0 0 30px var(--neon);
 }
 
 .team-label{
-  font-size:40px;
+  font-size:28px;
   color:var(--neon2);
-  margin-top:10px;
+  margin-top:8px;
 }
 
-/* 👇 STRONG NEON PULSE ANIMATION */
+/* NEON PULSE */
 @keyframes neonPulse {
   0% {
     box-shadow:
-      0 0 6px rgba(0,240,255,0.25),
-      0 0 15px rgba(0,240,255,0.15),
-      0 0 25px rgba(0,240,255,0.10);
-    opacity: 0.85;
+      0 0 6px rgba(0,240,255,0.20),
+      0 0 15px rgba(0,240,255,0.12);
+    opacity: 0.88;
   }
   50% {
     box-shadow:
-      0 0 12px rgba(0,240,255,0.45),
-      0 0 32px rgba(0,240,255,0.35),
-      0 0 55px rgba(0,240,255,0.30);
+      0 0 14px rgba(0,240,255,0.45),
+      0 0 40px rgba(0,240,255,0.30);
     opacity: 1;
   }
   100% {
     box-shadow:
-      0 0 6px rgba(0,240,255,0.25),
-      0 0 15px rgba(0,240,255,0.15),
-      0 0 25px rgba(0,240,255,0.10);
-    opacity: 0.85;
+      0 0 6px rgba(0,240,255,0.20),
+      0 0 15px rgba(0,240,255,0.12);
+    opacity: 0.88;
   }
 }
 
-/* TEAM GRID */
+/* TEAM GRID (uniform cells) */
 .team-grid{
   width:92%;
-  max-width:900px;
-  margin:20px auto;
+  max-width:960px;
+  margin:16px auto 26px;
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:20px;
 }
 
+/* TEAM CELL */
 .team-cell{
-  background:rgba(0,20,35,0.65);
-  padding:16px;
-  border-radius:14px;
+  background:rgba(0,20,35,0.6);
+  padding:14px;
+  border-radius:12px;
   text-align:center;
-  border:1px solid rgba(0,240,255,0.25);
-
-  /* 💥 STRONG NEON PULSE */
+  border:1px solid rgba(0,240,255,0.12);
+  box-shadow:
+    0 6px 18px rgba(0,20,30,0.25),
+    inset 0 -6px 14px rgba(0,0,0,0.25);
+  transition:transform .12s ease, box-shadow .12s ease;
+  /* subtle neon pulse */
   animation: neonPulse 1.8s ease-in-out infinite;
 }
+.team-cell:hover{
+  transform:translateY(-4px);
+}
 
+/* TEAM NAME INPUT - shifted slightly left: left align + padding */
 .team-cell input{
   width:100%;
-  padding:12px;
-  background:#00121c;
+  padding:12px 14px;
+  background:#00131c;
   border-radius:10px;
-  border:1px solid rgba(0,240,255,0.25);
-  font-size:20px;
+  border:1px solid rgba(0,240,255,0.12);
+  font-size:17px;
   color:var(--neon);
-  text-align:center;
-  box-shadow:0 0 10px rgba(0,240,255,0.25);
+  text-align:left;          /* left-aligned name (shifted left) */
+  font-weight:600;
+  box-shadow:0 0 8px rgba(0,240,255,0.08);
+  caret-color:var(--neon);
 }
 
+/* small max text centered below the name */
 .team-max{
-  margin-top:8px;
+  margin-top:10px;
   color:var(--neon2);
-  font-size:16px;
-  font-weight:bold;
+  font-size:15px;
+  font-weight:700;
+  text-align:center;
 }
 
-/* RULES TABLE */
-/* RULES TABLE — FIXED ALIGNMENT */
+/* RULES BOX (table-based, responsive) */
 .rules {
   width: 92%;
-  max-width: 900px;
-  margin: 30px auto;
+  max-width: 960px;
+  margin: 22px auto 36px;
   background: #01121a;
-  padding: 15px;
+  padding: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(0,240,255,0.25);
+  border: 1px solid rgba(0,240,255,0.08);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
 }
 
 .rules table {
-  width: 100%;
-  border-collapse: collapse;
+  width:100%;
+  border-collapse:collapse;
 }
 
-.rules th {
-  text-align: left;
-  padding: 10px;
-  font-size: 16px;
-  color: var(--neon2);
-  border-bottom: 1px solid rgba(0,240,255,0.25);
+.rules th{
+  text-align:left;
+  padding:12px 10px;
+  font-size:15px;
+  color:var(--neon2);
+  border-bottom:1px solid rgba(0,240,255,0.06);
+}
+.rules td{
+  padding:10px;
+  vertical-align:middle;
 }
 
-.rules td {
-  padding: 8px;
-  vertical-align: middle;
+/* inputs inside rules */
+.rules input{
+  width:100%;
+  padding:10px;
+  background:#00121c;
+  border:1px solid rgba(0,240,255,0.08);
+  border-radius:8px;
+  color:var(--neon);
+  font-size:15px;
+  box-sizing:border-box;
 }
 
-.rules input {
-  width: 100%;
-  padding: 10px;
-  background: #00121c;
-  border: 1px solid rgba(0,240,255,0.25);
-  border-radius: 8px;
-  color: var(--neon);
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
+/* small utilities */
 .undo-reset{
-  margin:20px;
+  margin:10px auto 50px;
   text-align:center;
 }
-
 .rejection{
   color:#ff8f8f;
   font-weight:bold;
+}
+
+/* make the layout nicer on small screens */
+@media (max-width:880px){
+  .team-grid{ grid-template-columns:repeat(2,1fr); gap:14px; }
+  .big-bid{ font-size:56px; }
+  .team-cell input{ font-size:15px; padding:10px 12px; }
+  .rules th, .rules td{ font-size:14px; padding:8px; }
+}
+@media (max-width:420px){
+  .team-grid{ grid-template-columns:1fr; }
+  .big-bid{ font-size:44px; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOP CONTROLS -->
+<!-- CONTROLS -->
 <div class="top-panel">
   <div class="control-box">
     <label>Starting Bid</label>
@@ -230,64 +252,65 @@ body{
 
 <!-- DISPLAY -->
 <div class="display">
-  <div style="font-size:18px; color:#9ffcff; margin-bottom:8px;">CURRENT BID</div>
+  <div style="font-size:16px;color:#9ffcff;margin-bottom:6px">CURRENT BID</div>
   <div class="big-bid" id="currentBid">100</div>
   <div class="team-label" id="currentTeam">---</div>
   <div id="rejectionNote" class="rejection"></div>
 </div>
 
-<div class="footer-note" style="text-align:center; color:#9ffcff; margin-bottom:12px;">
+<div style="text-align:center;color:#9ffcff;margin-bottom:16px">
   Edit team names and increment rules below — changes sync to owners instantly.
 </div>
 
 <!-- TEAM EDIT GRID -->
 <div class="team-grid" id="teamGrid"></div>
 
-<!-- INCREMENT RULES (5 rules) -->
+<!-- INCREMENT RULES (table) -->
 <div class="rules" id="rulesBox">
-  <div style="display:flex;gap:8px;margin-bottom:8px;">
-    <div style="width:60px;color:var(--neon2);font-weight:700">Rule</div>
-    <div style="flex:1;color:var(--neon2);font-weight:700">From (inclusive)</div>
-    <div style="flex:1;color:var(--neon2);font-weight:700">To (inclusive)</div>
-    <div style="width:140px;color:var(--neon2);font-weight:700">Increment</div>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px">Rule</th>
+        <th>From (inclusive)</th>
+        <th>To (inclusive)</th>
+        <th style="width:140px">Increment</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><input id="r1_from" placeholder="e.g. 1"></td>
+        <td><input id="r1_to" placeholder="e.g. 5"></td>
+        <td><input id="r1_inc" placeholder="e.g. 1"></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><input id="r2_from" placeholder="e.g. 6"></td>
+        <td><input id="r2_to" placeholder="e.g. 11"></td>
+        <td><input id="r2_inc" placeholder="e.g. 2"></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><input id="r3_from" placeholder="e.g. 12"></td>
+        <td><input id="r3_to" placeholder="e.g. 20"></td>
+        <td><input id="r3_inc" placeholder="e.g. 3"></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><input id="r4_from" placeholder="e.g. 21"></td>
+        <td><input id="r4_to" placeholder="e.g. 50"></td>
+        <td><input id="r4_inc" placeholder="e.g. 5"></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><input id="r5_from" placeholder="e.g. 51"></td>
+        <td><input id="r5_to" placeholder="e.g. 99999"></td>
+        <td><input id="r5_inc" placeholder="e.g. 10"></td>
+      </tr>
+    </tbody>
+  </table>
 
-  <div class="row">
-    <div style="width:60px;color:var(--neon2)">1</div>
-    <input id="r1_from" placeholder="e.g. 1" />
-    <input id="r1_to"   placeholder="e.g. 5" />
-    <input id="r1_inc"  placeholder="e.g. 1" />
-  </div>
-
-  <div class="row">
-    <div style="width:60px;color:var(--neon2)">2</div>
-    <input id="r2_from" placeholder="e.g. 6" />
-    <input id="r2_to"   placeholder="e.g. 11" />
-    <input id="r2_inc"  placeholder="e.g. 2" />
-  </div>
-
-  <div class="row">
-    <div style="width:60px;color:var(--neon2)">3</div>
-    <input id="r3_from" placeholder="e.g. 12" />
-    <input id="r3_to"   placeholder="e.g. 20" />
-    <input id="r3_inc"  placeholder="e.g. 3" />
-  </div>
-
-  <div class="row">
-    <div style="width:60px;color:var(--neon2)">4</div>
-    <input id="r4_from" placeholder="e.g. 21" />
-    <input id="r4_to"   placeholder="e.g. 50" />
-    <input id="r4_inc"  placeholder="e.g. 5" />
-  </div>
-
-  <div class="row">
-    <div style="width:60px;color:var(--neon2)">5</div>
-    <input id="r5_from" placeholder="e.g. 51" />
-    <input id="r5_to"   placeholder="e.g. 99999" />
-    <input id="r5_inc"  placeholder="e.g. 10" />
-  </div>
-
-  <div style="text-align:right; margin-top:6px;">
+  <div style="text-align:right;margin-top:12px">
     <button class="button" onclick="saveRules()">Save Rules</button>
   </div>
 </div>
@@ -295,10 +318,12 @@ body{
 <div class="undo-reset">
   <button class="button" onclick="undoBid()">Undo</button>
   <button class="button" onclick="resetBid()">Reset</button>
-  <div style="margin-top:8px;" class="small">First bid equals starting bid (no increment). Later bids use the rules above (To is inclusive).</div>
+  <div style="margin-top:8px;color:#9ffcff;font-size:13px">
+    First bid equals starting bid (no increment). Later bids use the rules above (To is inclusive).
+  </div>
 </div>
 
-<!-- Firebase CDN -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -309,7 +334,7 @@ const firebaseConfig = {
   authDomain: "auction-71c28.firebaseapp.com",
   databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "auction-71c28",
-  storageBucket: "auction-71c28.firebasestorage.app",
+  storageBucket: "auction-71c28firebasestorage.app",
   messagingSenderId: "92883040612",
   appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
@@ -323,11 +348,11 @@ const ownerKeys = {
 };
 const defaultTeams = {1:"Team A",2:"Team B",3:"Team C",4:"Team D",5:"Team E",6:"Team F",7:"Team G",8:"Team H"};
 
-// ensure initial DB nodes
+/* ensure required nodes exist */
 db.ref('teams').once('value').then(snap=>{ if(!snap.exists()) db.ref('teams').set(defaultTeams); });
 db.ref('ownerKeys').once('value').then(snap=>{ if(!snap.exists()) db.ref('ownerKeys').set(ownerKeys); });
 
-// default increments if absent
+/* default increments if not present */
 db.ref('increments').once('value').then(snap=>{
   if(!snap.exists()){
     const defaults = [
@@ -341,25 +366,25 @@ db.ref('increments').once('value').then(snap=>{
   }
 });
 
-/* ---------- UI: build team grid with compact max under name ---------- */
+/* ---------- Build team grid: 8 cells ---------- */
 const teamGrid = document.getElementById('teamGrid');
 for(let i=1;i<=8;i++){
-  const div = document.createElement('div');
-  div.className = 'team-cell';
-  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}"><div id="t${i}_max" class="team-max">Max: —</div>`;
-  teamGrid.appendChild(div);
+  const cell = document.createElement('div');
+  cell.className = 'team-cell';
+  cell.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}"><div id="t${i}_max" class="team-max">Max: —</div>`;
+  teamGrid.appendChild(cell);
 }
 
-// sync team names from firebase
+/* sync team names from firebase to inputs */
 db.ref('teams').on('value', snap=>{
   const teams = snap.val() || defaultTeams;
   for(let i=1;i<=8;i++){
     const el = document.getElementById('t'+i);
-    if(el) el.value = teams[i] || ('Team '+i);
+    if(el) el.value = teams[i] || ('Team ' + i);
   }
 });
 
-// when admin edits names, push to firebase
+/* when admin edits names, push to firebase (debounced) */
 let tTimer = null;
 teamGrid.addEventListener('input', e=>{
   if(!e.target.matches('input')) return;
@@ -373,7 +398,7 @@ teamGrid.addEventListener('input', e=>{
   }, 400);
 });
 
-/* ---------- INCREMENT RULES UI ---------- */
+/* ---------- Increment rules UI ---------- */
 function loadRulesToForm(rules){
   if(!rules || !rules.length) return;
   for(let i=0;i<5;i++){
@@ -400,7 +425,7 @@ function saveRules(){
   db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); }).catch(err=>{ console.error(err); alert('Save failed'); });
 }
 
-/* ---------- Auction core (first-bid, dynamic increments, max enforcement) ---------- */
+/* ---------- Auction core (first-bid behavior, increments, max enforcement) ---------- */
 let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
 let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
 let history = [];
@@ -408,13 +433,13 @@ let lastBidTeam = null;
 let increments = [];
 let maxBids = {};
 
-// load increments into memory
+/* increments list */
 db.ref('increments').on('value', snap=>{
   increments = snap.val() || [];
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
 });
 
-// keep maxBids mirrored in firebase (owners read this)
+/* mirror maxBids and update team max displays */
 db.ref('maxBids').on('value', snap=>{
   maxBids = snap.val() || {};
   for(let i=1;i<=8;i++){
@@ -475,113 +500,4 @@ function updateOwners(){
     currentBid: currentBid,
     currentTeam: document.getElementById('currentTeam').innerText,
     ts: Date.now()
-  }).catch(err=> console.error('updateOwners err', err));
-}
-
-/* ---------- Bid flow ---------- */
-function applySettings(){
-  const newStart = parseInt(document.getElementById('startBid').value,10);
-  const newFallback = parseInt(document.getElementById('fallbackInc').value,10);
-  if(!Number.isNaN(newStart)) currentBid = newStart;
-  if(!Number.isNaN(newFallback)) fallbackInc = newFallback;
-  lastBidTeam = null;
-  history = [];
-  document.getElementById('rejectionNote').innerText = '';
-  updateDisplay('---');
-  updateOwners();
-}
-
-function updateDisplay(team){
-  document.getElementById('currentBid').innerText = currentBid;
-  document.getElementById('currentTeam').innerText = team;
-}
-
-function computeNextBidAmountIf(teamNum){
-  const isFirstAccepted = (history.length === 0);
-  if(isFirstAccepted) return currentBid;
-  const inc = getIncrementFor(currentBid);
-  return Number(currentBid) + Number(inc);
-}
-
-function placeBid(teamNum){
-  if(lastBidTeam === teamNum) return;
-
-  const teamMax = Number(maxBids[String(teamNum)] || 0);
-  const nextValue = computeNextBidAmountIf(teamNum);
-
-  if(teamMax > 0 && nextValue > teamMax){
-    db.ref('rejections/' + String(teamNum)).set({
-      time: Date.now(),
-      reason: 'exceeds_max',
-      max: teamMax,
-      attempted: nextValue
-    }).catch(e=>console.error('rejection write err',e));
-    document.getElementById('rejectionNote').innerText = `Bid rejected for Team ${teamNum} — max ${teamMax}`;
-    setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 7000);
-    return;
-  }
-
-  const isFirstAccepted = (history.length === 0);
-  if(isFirstAccepted){
-    lastBidTeam = teamNum;
-    history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
-    const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
-    updateDisplay(teamName);
-    updateOwners();
-    return;
-  }
-
-  const inc = getIncrementFor(currentBid);
-  lastBidTeam = teamNum;
-  history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
-  currentBid = Number(currentBid) + Number(inc);
-  const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
-  updateDisplay(teamName);
-  updateOwners();
-}
-
-function undoBid(){
-  if(history.length === 0) return;
-  const last = history.pop();
-  currentBid = last.bid;
-  lastBidTeam = null;
-  updateDisplay(last.team);
-  updateOwners();
-}
-
-function resetBid(){
-  const newStart = parseInt(document.getElementById('startBid').value,10);
-  currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
-  history = [];
-  lastBidTeam = null;
-  document.getElementById('rejectionNote').innerText = '';
-  updateDisplay('---');
-  updateOwners();
-}
-
-/* ---------- keyboard admin bidding & owner-triggered bids ---------- */
-document.addEventListener('keydown', e=>{
-  if(e.key >= '1' && e.key <= '8'){
-    placeBid(parseInt(e.key,10));
-  }
-});
-
-let lastSeenTime = 0;
-db.ref('latestBid').on('value', snap=>{
-  const data = snap.val();
-  if(!data) return;
-  if(!data.time || data.time <= lastSeenTime) return;
-  lastSeenTime = data.time;
-  const tnum = Number(data.teamNum);
-  if(!tnum || tnum < 1 || tnum > 8) return;
-  placeBid(tnum);
-});
-
-window.addEventListener('load', ()=>{
-  updateDisplay('---');
-  updateOwners();
-});
-</script>
-
-</body>
-</html>
+  }).catch(err=> console.
