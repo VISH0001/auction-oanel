@@ -340,7 +340,16 @@ let increments = [];
 db.ref('increments').on('value', snap=>{
   increments = snap.val() || [];
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
+
+  // >>> FILL RULE INPUT BOXES FROM DB <<<
+  for (let i=0; i<5; i++) {
+    const r = increments[i] || {};
+    document.getElementById(`r${i+1}_from`).value = r.from ?? "";
+    document.getElementById(`r${i+1}_to`).value   = r.to ?? "";
+    document.getElementById(`r${i+1}_inc`).value  = r.inc ?? "";
+  }
 });
+
 
 /* mirror maxBids */
 let maxBids = {};
