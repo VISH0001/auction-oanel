@@ -1,133 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
-    margin:0;
-    background:radial-gradient(circle,#041c28,#000710 70%);
-    font-family:Arial,Helvetica,sans-serif;
-    color:white;
+  margin:0;
+  background:radial-gradient(circle,#06273a,#00101a 70%);
+  font-family:Arial,Helvetica,sans-serif;
+  color:white;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* Title */
+/* Heading glow */
 h1{
-    text-align:center;
-    color:#00eaff;
-    margin-top:28px;
-    font-size:32px;
-    text-shadow:0 0 12px #00eaff,0 0 24px #00eaff;
+  text-align:center;
+  margin-top:30px;
+  color:#00eaff;
+  text-shadow:0 0 15px #00eaff,0 0 30px #00eaff;
+  font-size:36px;
 }
 
 /* Container */
-.box{
-    width:92%;
-    max-width:700px;
-    margin:30px auto;
-    padding:18px;
-    border-radius:15px;
-    background:rgba(0,30,50,0.4);
-    border:1px solid rgba(0,240,255,0.35);
-    box-shadow:0 0 20px rgba(0,240,255,0.45),0 0 40px rgba(0,240,255,0.28);
+#listBox{
+  width:90%;
+  max-width:700px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:14px;
+  background:rgba(0,20,35,0.4);
+  box-shadow:0 0 25px rgba(0,240,255,0.35);
 }
 
-/* Each bid row box */
-.bidRow{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:14px 18px;
-    margin:10px 0;
-    border-radius:10px;
-    font-size:20px;
-    font-weight:600;
-
-    /* Glow */
-    box-shadow:0 0 12px rgba(0,255,255,0.35),0 0 20px rgba(0,255,255,0.25);
-
-    /* Smooth transition */
-    transition:0.2s;
+/* Each bid row */
+.bid-row{
+  padding:14px 18px;
+  border-radius:10px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:20px;
+  font-weight:600;
+  color:#9ffcff;
+  text-shadow:0 0 6px #00eaff;
+  box-shadow:0 0 18px rgba(0,240,255,0.15);
 }
 
-/* Alternate background colors */
-.bidRow:nth-child(odd){
-    background:rgba(0,50,70,0.55);
+/* Alternate background */
+.bid-row:nth-child(odd){
+  background:rgba(0,60,80,0.45);
 }
-.bidRow:nth-child(even){
-    background:rgba(0,35,55,0.55);
-}
-
-/* Hover effect */
-.bidRow:hover{
-    transform:scale(1.015);
-    box-shadow:0 0 14px rgba(0,255,255,0.55),0 0 28px rgba(0,255,255,0.4);
+.bid-row:nth-child(even){
+  background:rgba(0,90,120,0.45);
 }
 
 /* Team name left */
-.teamName{
-    color:#9ffcff;
-    text-shadow:0 0 8px #00eaff;
+.team{
+  color:#00eaff;
+  font-weight:700;
 }
 
-/* Amount right */
-.bidAmount{
-    color:#00eaff;
-    font-weight:800;
-    text-shadow:0 0 10px #00eaff,0 0 20px #00eaff;
+/* Amount on right */
+.amount{
+  color:#9ffcff;
+  font-weight:700;
 }
 </style>
 </head>
 
 <body>
-
 <h1>Last 10 Bids</h1>
 
-<div class="box" id="bidList">
-    <!-- JS will fill rows here -->
-</div>
+<div id="listBox"></div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-/* Firebase same config as your main panel */
+// Firebase config (same as main panel)
 const firebaseConfig = {
-    apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
-    authDomain: "auction-71c28.firebaseapp.com",
-    databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "auction-71c28",
-    storageBucket: "auction-71c28.firebasestorage.app",
-    messagingSenderId: "92883040612",
-    appId: "1:92883040612:web:473f540c99efc20e8d2271"
+  apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
+  authDomain: "auction-71c28.firebaseapp.com",
+  databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "auction-71c28",
+  storageBucket: "auction-71c28.firebasestorage.app",
+  messagingSenderId: "92883040612",
+  appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* Listen for latest 10 bids */
-db.ref("recentBids").orderByChild("ts").limitToLast(10).on("value", snap=>{
-    const list = document.getElementById("bidList");
-    list.innerHTML = "";
+const listBox = document.getElementById("listBox");
 
-    const data = snap.val();
-    if(!data) return;
+/* LIVE LISTENER for last10Bids */
+db.ref("last10Bids").on("value", snap=>{
+    const arr = snap.val() || [];
+    listBox.innerHTML = "";
 
-    const arr = Object.values(data).sort((a,b)=> a.ts - b.ts);
+    arr.forEach(item=>{
+        const row = document.createElement("div");
+        row.className = "bid-row";
 
-    arr.forEach(row=>{
-        const div = document.createElement("div");
-        div.className = "bidRow";
-
-        div.innerHTML = `
-            <div class="teamName">${row.team}</div>
-            <div class="bidAmount">${row.bid}</div>
+        row.innerHTML = `
+            <div class="team">${item.team}</div>
+            <div class="amount">₹ ${item.amount}</div>
         `;
-
-        list.appendChild(div);
+        listBox.appendChild(row);
     });
 });
 </script>
