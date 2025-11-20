@@ -53,11 +53,19 @@ body{
   padding:10px;
   border-radius:10px;
   text-align:center;
-  border:1px solid rgba(0,240,255,0.15);
+  border:1px solid rgba(0,240,255,0.08);
   position:relative;
 
-  /* NEW glowing animation */
-  animation: teamGlow 2.2s ease-in-out infinite;
+  /* FIX 1 — prevent glow from shifting layout */
+  box-sizing:border-box;
+
+  /* FIX 2 — add consistent padding to center input */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  /* Glow animation */
+  animation: neonPulse 2s ease-in-out infinite;
 }
 
 /* Editable team name glowing input */
