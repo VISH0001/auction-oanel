@@ -7,73 +7,59 @@
 
 <style>
 body {
-  background:radial-gradient(circle,#06273a,#00101a 70%);
+  background: radial-gradient(circle, #04202e, #000710 70%);
   color:#9ffcff;
-  font-family: Arial, Helvetica, sans-serif;
-  padding:20px;
-}
-
-/* Heading */
-h2 {
+  font-family: Arial, sans-serif;
+  padding:30px 15px;
   text-align:center;
-  color:#00eaff;
-  font-size:32px;
-  text-shadow:0 0 12px #00eaff, 0 0 25px #00eaff;
-  margin-bottom:25px;
 }
 
-/* Container */
+/* Title Glow */
+h2 {
+  color:#00eaff;
+  font-size:34px;
+  margin-bottom:25px;
+  text-shadow:0 0 10px #00eaff, 0 0 25px #00eaff;
+}
+
+/* Main box */
 #list {
   margin:0 auto;
-  max-width:500px;
+  max-width:480px;
+  padding:0;
 }
 
-/* Each bid box */
+/* Each bid row (box) */
 .bidRow {
+  margin:12px 0;
   padding:14px 18px;
-  margin-bottom:12px;
   border-radius:12px;
-
+  font-size:20px;
+  font-weight:600;
   display:flex;
   justify-content:space-between;
   align-items:center;
-
-  font-size:20px;
-  font-weight:600;
-  color:#9ffcff;
-
-  /* Glow */
-  box-shadow:0 0 18px rgba(0,240,255,0.35), 0 0 35px rgba(0,240,255,0.15);
-  border:1px solid rgba(0,240,255,0.20);
+  text-shadow:0 0 8px rgba(255,255,255,0.4);
+  border:1px solid rgba(255,255,255,0.15);
+  transition:0.2s;
 }
 
-/* Alternate background colors */
-.bidRow:nth-child(odd){
-  background:rgba(0,60,80,0.45);
-}
-.bidRow:nth-child(even){
-  background:rgba(0,90,120,0.45);
-}
+/* TEAM COLORS */
+.team1 { background:rgba(0,234,255,0.09); border-color:#00eaff; box-shadow:0 0 18px #00eaff55; color:#00eaff; }
+.team2 { background:rgba(63,87,255,0.09); border-color:#3f57ff; box-shadow:0 0 18px #3f57ff55; color:#3f57ff; }
+.team3 { background:rgba(0,255,106,0.09); border-color:#00ff6a; box-shadow:0 0 18px #00ff6a55; color:#00ff6a; }
+.team4 { background:rgba(255,174,0,0.09); border-color:#ffae00; box-shadow:0 0 18px #ffae0055; color:#ffae00; }
+.team5 { background:rgba(165,91,255,0.09); border-color:#a55bff; box-shadow:0 0 18px #a55bff55; color:#a55bff; }
+.team6 { background:rgba(255,75,75,0.09); border-color:#ff4b4b; box-shadow:0 0 18px #ff4b4b55; color:#ff4b4b; }
+.team7 { background:rgba(0,255,213,0.09); border-color:#00ffd5; box-shadow:0 0 18px #00ffd555; color:#00ffd5; }
+.team8 { background:rgba(140,255,0,0.09); border-color:#8cff00; box-shadow:0 0 18px #8cff0055; color:#8cff00; }
 
-/* Team name (left) */
-.team {
-  color:#00eaff;
-  text-shadow:0 0 10px #00eaff;
-}
-
-/* Amount (right) */
-.amount {
-  color:#9ffcff;
-  font-weight:700;
-  text-shadow:0 0 12px #9ffcff;
-}
 </style>
 </head>
 
 <body>
 
 <h2>Last 10 Bids</h2>
-
 <div id="list"></div>
 
 <!-- Firebase -->
@@ -81,6 +67,7 @@ h2 {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+/* Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -93,18 +80,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+/* DOM */
 const listDiv = document.getElementById('list');
 
-/* IMPORTANT: your main panel writes to "last10bids" (lowercase) */
-db.ref('last10bids').on('value', snap => {
+/* Listener */
+db.ref('last10bids').on('value', snap=>{
   listDiv.innerHTML = "";
   const arr = snap.val() || [];
 
-  arr.forEach(item => {
+  arr.forEach(item=>{
+    const t = item.teamNum || 1;
+    const name = item.team || "Team ?";
+    const amt = item.amount || 0;
+
     listDiv.innerHTML += `
-      <div class="bidRow">
-        <div class="team">${item.team}</div>
-        <div class="amount">${item.amount}</div>
+      <div class="bidRow team${t}">
+        <span style="text-align:left;">${name}</span>
+        <span style="text-align:right;">${amt}</span>
       </div>
     `;
   });
