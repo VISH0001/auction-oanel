@@ -1,179 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <title>Live Bidding Panel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-:root{
-    --neon:#00eaff;
-    --neon2:#9ffcff;
-    --dark:#03121f;
-}
-body{
-    margin:0;
-    background:radial-gradient(circle,#06273a,#00101a 70%);
-    font-family:Arial,Helvetica,sans-serif;
-    color:white;
-    overflow-x:hidden;
-}
+:root{ --neon:#00eaff; --neon2:#9ffcff; --dark:#03121f; }
+body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:radial-gradient(circle,#06273a,#00101a 70%); color:white; }
+.top-panel{ display:flex; gap:14px; justify-content:center; padding:18px; align-items:center; }
+.control-box{ padding:10px 12px; border-radius:10px; background:rgba(0,20,35,0.6); border:1px solid rgba(0,240,255,0.12); }
+.control-box label{ color:var(--neon2); font-size:13px; display:block; margin-bottom:6px; }
+.control-box input[type="number"], .control-box input[type="text"]{ width:120px; padding:6px; border-radius:6px; border:1px solid rgba(0,240,255,0.12); background:#00121c; color:var(--neon); }
+.button{ padding:10px 14px; border-radius:8px; border:0; background:var(--neon); color:#00131b; font-weight:700; cursor:pointer; }
+.display{ margin:18px auto; width:420px; background:#00111a; padding:28px; border-radius:14px; text-align:center; border:1px solid rgba(0,240,255,0.12); }
+.big-bid{ font-size:72px; font-weight:800; color:var(--neon); }
+.team-label{ font-size:30px; color:var(--neon2); margin-top:6px; }
+.team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:88%; margin:20px auto; }
+.team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); }
+.team-cell input{ width:100%; padding:8px; background:#00121c; border-radius:8px; color:var(--neon); border:1px solid rgba(0,240,255,0.08); }
+.undo-reset{ text-align:center; padding:12px; }
+.small{ font-size:12px; color:#9ffcff; }
 
-/* HEADER CONTROLS */
-.top-panel{
-    margin-top:25px;
-    display:flex;
-    justify-content:center;
-    gap:20px;
-}
-
-.control-box{
-    padding:12px 18px;
-    border-radius:12px;
-    background:rgba(0,20,35,0.6);
-    box-shadow:0 0 25px rgba(0,240,255,0.15);
-    border:1px solid rgba(0,240,255,0.25);
-}
-.control-box label{
-    color:var(--neon2);
-    font-size:14px;
-    margin-right:6px;
-}
-.control-box input{
-    width:90px;
-    padding:6px 10px;
-    background:#00121c;
-    border:2px solid var(--neon);
-    border-radius:8px;
-    color:var(--neon);
-    text-align:center;
-    font-size:18px;
-}
-button{
-    padding:10px 18px;
-    border-radius:10px;
-    border:none;
-    font-weight:bold;
-    background:var(--neon);
-    color:#00131b;
-    cursor:pointer;
-    box-shadow:0 0 20px var(--neon);
-}
-button:hover{
-    filter:brightness(1.2);
-}
-
-/* CENTER DISPLAY */
-.display{
-    margin:50px auto;
-    width:400px;
-    background:#00111a;
-    padding:40px;
-    border-radius:20px;
-    text-align:center;
-    box-shadow:0 0 45px rgba(0,240,255,0.25);
-    border:2px solid rgba(0,240,255,0.2);
-}
-
-.big-bid{
-    font-size:100px;
-    font-weight:bold;
-    margin-bottom:10px;
-    color:var(--neon);
-    text-shadow:0 0 25px var(--neon);
-}
-.team-label{
-    font-size:40px;
-    color:var(--neon2);
-    text-shadow:0 0 20px var(--neon2);
-}
-
-/* TEAM GRID */
-.team-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:20px;
-    width:80%;
-    margin:40px auto;
-}
-.team-cell{
-    background:#001621;
-    border:2px solid rgba(0,240,255,0.2);
-    padding:15px;
-    border-radius:14px;
-    text-align:center;
-    cursor:pointer;
-    box-shadow:0 0 20px rgba(0,240,255,0.15);
-}
-.team-cell:hover{
-    background:#002737;
-    box-shadow:0 0 25px rgba(0,240,255,0.35);
-}
-.team-cell input{
-    width:100%;
-    padding:8px;
-    background:#00121c;
-    color:var(--neon);
-    border:2px solid var(--neon);
-    border-radius:8px;
-    text-align:center;
-    font-size:18px;
-}
-
-.undo-reset{
-    text-align:center;
-    margin-top:30px;
-}
-.undo-reset button{
-    margin:0 10px;
-}
 </style>
 </head>
-
 <body>
 
-<!-- CONTROLS -->
 <div class="top-panel">
-    <div class="control-box">
-        <label>Starting Bid</label>
-        <input id="startBid" type="number" value="100">
-    </div>
-    <div class="control-box">
-        <label>Increment</label>
-        <input id="increment" type="number" value="10">
-    </div>
-    <button onclick="applySettings()">Apply</button>
+  <div class="control-box">
+    <label>Starting Bid</label>
+    <input id="startBid" type="number" value="100">
+  </div>
+
+  <div class="control-box">
+    <label>Increment</label>
+    <input id="increment" type="number" value="10">
+  </div>
+
+  <div class="control-box">
+    <label>Owner Keys (admin)</label>
+    <input id="showKeys" type="text" value="(hidden)" readonly>
+  </div>
+
+  <button class="button" onclick="applySettings()">Apply</button>
 </div>
 
-<!-- DISPLAY -->
 <div class="display">
-    <div style="
-        font-size:32px;
-        color:#9ffcff;
-        margin-bottom:20px;
-        text-shadow:0 0 15px #00eaff;
-        letter-spacing:2px;">
-        CURRENT BID
-    </div>
-
-    <div class="big-bid" id="currentBid">100</div>
-    <div class="team-label" id="currentTeam">---</div>
+  <div style="font-size:22px; color:#9ffcff; margin-bottom:12px;">CURRENT BID</div>
+  <div class="big-bid" id="currentBid">100</div>
+  <div class="team-label" id="currentTeam">---</div>
 </div>
 
-<!-- TEAM GRID -->
-<div class="team-grid">
-    <div class="team-cell"><input id="t1" value="Team A"></div>
-    <div class="team-cell"><input id="t2" value="Team B"></div>
-    <div class="team-cell"><input id="t3" value="Team C"></div>
-    <div class="team-cell"><input id="t4" value="Team D"></div>
-    <div class="team-cell"><input id="t5" value="Team E"></div>
-    <div class="team-cell"><input id="t6" value="Team F"></div>
-    <div class="team-cell"><input id="t7" value="Team G"></div>
-    <div class="team-cell"><input id="t8" value="Team H"></div>
+<div style="width:95%; margin:auto; text-align:center;">
+  <div class="small">Edit team names below — changes will sync to owners instantly.</div>
 </div>
 
-<!-- UNDO / RESET -->
+<div class="team-grid" id="teamGrid">
+  <!-- team inputs will be generated by script -->
+</div>
+
 <div class="undo-reset">
-    <button onclick="undoBid()">Undo</button>
-    <button onclick="resetBid()">Reset</button>
+  <button class="button" onclick="undoBid()">Undo</button>
+  <button class="button" onclick="resetBid()">Reset</button>
+  <div style="margin-top:8px;" class="small">Make sure to copy & share each owner's secure link (admin only)</div>
 </div>
 
 <!-- Firebase CDN -->
@@ -181,79 +69,172 @@ button:hover{
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-// Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
-    authDomain: "auction-71c28.firebaseapp.com",
-    databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "auction-71c28",
-    storageBucket: "auction-71c28.firebasestorage.app",
-    messagingSenderId: "92883040612",
-    appId: "1:92883040612:web:473f540c99efc20e8d2271"
+  apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
+  authDomain: "auction-71c28.firebaseapp.com",
+  databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "auction-71c28",
+  storageBucket: "auction-71c28.firebasestorage.app",
+  messagingSenderId: "92883040612",
+  appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// LISTEN FOR INCOMING BIDS FROM OWNERS
-db.ref("latestBid").on("value", snapshot => {
-    const data = snapshot.val();
-    if (!data) return;
-    placeBid(data.teamNum);
+// ---------- secure keys (the same keys we generated earlier) ----------
+const ownerKeys = {
+  "t1_92fA6k3Z": 1,
+  "t2_Qp71xL0S": 2,
+  "t3_n88RwA1D": 3,
+  "t4_F92amP0L": 4,
+  "t5_cH7x9LmQ": 5,
+  "t6_B1mZ3kPx": 6,
+  "t7_Ux8q21Nv": 7,
+  "t8_Yp0mR4Ws": 8
+};
+
+// ---------- initial team names (will be synced to firebase if absent) ----------
+const defaultTeams = {
+  1: "Team A", 2: "Team B", 3: "Team C", 4: "Team D",
+  5: "Team E", 6: "Team F", 7: "Team G", 8: "Team H"
+};
+
+// Initialize DB values (only if they don't exist)
+function ensureInitialData(){
+  db.ref('teams').once('value').then(snap=>{
+    if(!snap.exists()){
+      db.ref('teams').set(defaultTeams);
+    }
+  });
+  db.ref('ownerKeys').once('value').then(snap=>{
+    if(!snap.exists()){
+      db.ref('ownerKeys').set(ownerKeys);
+    }
+  });
+  db.ref('latestBid').once('value').then(()=>{}); // create node if needed
+  db.ref('liveDisplay').once('value').then(()=>{});
+}
+ensureInitialData();
+
+// ---------- UI: generate team inputs ----------
+const teamGrid = document.getElementById('teamGrid');
+for(let i=1;i<=8;i++){
+  const div = document.createElement('div');
+  div.className = 'team-cell';
+  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}">`;
+  teamGrid.appendChild(div);
+}
+
+// load team names from firebase and keep them synced
+db.ref('teams').on('value', snap=>{
+  const teams = snap.val() || defaultTeams;
+  for(let i=1;i<=8;i++){
+    const input = document.getElementById('t'+i);
+    if(input) input.value = teams[i] || ('Team '+i);
+  }
 });
 
-// UPDATE OWNERS WITH LIVE VALUES
-function updateOwners(){
-    db.ref("liveDisplay").set({
-        currentBid: currentBid,
-        currentTeam: document.getElementById("currentTeam").innerText
-    });
-}
-</script>
+// when admin edits a team name, push to firebase (debounced)
+let teamUpdateTimer = null;
+teamGrid.addEventListener('input', e=>{
+  if(!e.target.matches('input')) return;
+  clearTimeout(teamUpdateTimer);
+  teamUpdateTimer = setTimeout(()=>{
+    const updates = {};
+    for(let i=1;i<=8;i++){
+      updates[i] = document.getElementById('t'+i).value || ('Team '+i);
+    }
+    db.ref('teams').set(updates);
+  }, 450);
+});
 
-<!-- ORIGINAL LOGIC -->
-<script>
-let currentBid = 100;
-let increment = 10;
+// show owner keys in the readonly field (admin convenience)
+document.getElementById('showKeys').value = Object.entries(ownerKeys).map(kv=>kv.join(':')).join(' | ');
+
+// ---------- Auction logic ----------
+let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
+let increment = parseInt(document.getElementById('increment').value,10) || 10;
 let history = [];
 
+// apply settings
 function applySettings(){
-    currentBid = parseInt(document.getElementById("startBid").value);
-    increment = parseInt(document.getElementById("increment").value);
-    history = [];
-    updateDisplay("---");
+  currentBid = parseInt(document.getElementById('startBid').value,10) || currentBid;
+  increment = parseInt(document.getElementById('increment').value,10) || increment;
+  history = [];
+  updateDisplay('---');
+  updateOwners();
 }
 
+// place bid invoked either by owner (via latestBid node) or by admin (keyboard)
 function placeBid(teamNum){
-    history.push({ bid: currentBid, team: document.getElementById("currentTeam").innerText });
+  // record history for undo
+  history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
 
-    currentBid += increment;
-    const teamName = document.getElementById("t"+teamNum).value;
-
-    updateDisplay(teamName);
-    updateOwners();  // 🔥 Updating all owners live
+  // increment and update UI
+  currentBid += increment;
+  const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+  updateDisplay(teamName);
+  updateOwners();
 }
 
+// update visible display
 function updateDisplay(team){
-    document.getElementById("currentBid").innerText = currentBid;
-    document.getElementById("currentTeam").innerText = team;
+  document.getElementById('currentBid').innerText = currentBid;
+  document.getElementById('currentTeam').innerText = team;
 }
 
+// update owners liveDisplay node
+function updateOwners(){
+  const teamName = document.getElementById('currentTeam').innerText || '---';
+  db.ref('liveDisplay').set({
+    currentBid: currentBid,
+    currentTeam: teamName,
+    ts: Date.now()
+  }).catch(err => console.error('updateOwners err',err));
+}
+
+// undo / reset
 function undoBid(){
-    if(history.length === 0) return;
-    const last = history.pop();
-    currentBid = last.bid;
-    updateDisplay(last.team);
-    updateOwners();
+  if(history.length === 0) return;
+  const last = history.pop();
+  currentBid = last.bid;
+  updateDisplay(last.team);
+  updateOwners();
 }
 
 function resetBid(){
-    currentBid = parseInt(document.getElementById("startBid").value);
-    history = [];
-    updateDisplay("---");
-    updateOwners();
+  currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
+  history = [];
+  updateDisplay('---');
+  updateOwners();
 }
-</script>
 
+// keyboard admin quick-bid (1..8)
+document.addEventListener('keydown', e=>{
+  if(e.key >= '1' && e.key <= '8'){
+    placeBid(parseInt(e.key,10));
+  }
+});
+
+// LISTEN for owner bids (latestBid node)
+let lastSeenTime = 0;
+db.ref('latestBid').on('value', snap=>{
+  const data = snap.val();
+  if(!data) return;
+  // ignore duplicates or stale
+  if(!data.time || data.time <= lastSeenTime) return;
+  lastSeenTime = data.time;
+  // validate team number against ownerKeys mapping (optional extra safety)
+  const tnum = parseInt(data.teamNum,10);
+  // place the bid
+  placeBid(tnum);
+});
+
+// When main panel loads, push current liveDisplay so owners see initial values
+window.addEventListener('load', ()=> {
+  updateDisplay('---');
+  updateOwners();
+});
+</script>
 </body>
 </html>
