@@ -1,67 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body {
-  background:#00101a;
-  color:#9ffcff;
-  font-family: Arial;
-  padding:20px;
+body{
+    margin:0;
+    background:radial-gradient(circle,#041c28,#000710 70%);
+    font-family:Arial,Helvetica,sans-serif;
+    color:white;
 }
-h2 {
-  text-align:center;
-  color:#00eaff;
-  text-shadow:0 0 10px #00eaff;
+
+/* Title */
+h1{
+    text-align:center;
+    color:#00eaff;
+    margin-top:28px;
+    font-size:32px;
+    text-shadow:0 0 12px #00eaff,0 0 24px #00eaff;
 }
-.bidBox{
-  margin:10px auto;
-  max-width:420px;
-  background:#001621;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid rgba(0,240,255,0.2);
-  box-shadow:0 0 10px rgba(0,240,255,0.25);
+
+/* Container */
+.box{
+    width:92%;
+    max-width:700px;
+    margin:30px auto;
+    padding:18px;
+    border-radius:15px;
+    background:rgba(0,30,50,0.4);
+    border:1px solid rgba(0,240,255,0.35);
+    box-shadow:0 0 20px rgba(0,240,255,0.45),0 0 40px rgba(0,240,255,0.28);
 }
-.line{
-  padding:6px 0;
-  border-bottom:1px solid rgba(255,255,255,0.1);
+
+/* Each bid row box */
+.bidRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 18px;
+    margin:10px 0;
+    border-radius:10px;
+    font-size:20px;
+    font-weight:600;
+
+    /* Glow */
+    box-shadow:0 0 12px rgba(0,255,255,0.35),0 0 20px rgba(0,255,255,0.25);
+
+    /* Smooth transition */
+    transition:0.2s;
+}
+
+/* Alternate background colors */
+.bidRow:nth-child(odd){
+    background:rgba(0,50,70,0.55);
+}
+.bidRow:nth-child(even){
+    background:rgba(0,35,55,0.55);
+}
+
+/* Hover effect */
+.bidRow:hover{
+    transform:scale(1.015);
+    box-shadow:0 0 14px rgba(0,255,255,0.55),0 0 28px rgba(0,255,255,0.4);
+}
+
+/* Team name left */
+.teamName{
+    color:#9ffcff;
+    text-shadow:0 0 8px #00eaff;
+}
+
+/* Amount right */
+.bidAmount{
+    color:#00eaff;
+    font-weight:800;
+    text-shadow:0 0 10px #00eaff,0 0 20px #00eaff;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Last 10 Bids</h2>
-<div id="list" class="bidBox"></div>
+<h1>Last 10 Bids</h1>
+
+<div class="box" id="bidList">
+    <!-- JS will fill rows here -->
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+/* Firebase same config as your main panel */
 const firebaseConfig = {
-  apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
-  authDomain: "auction-71c28.firebaseapp.com",
-  databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "auction-71c28",
-  storageBucket: "auction-71c28.firebasestorage.app",
-  messagingSenderId: "92883040612",
-  appId: "1:92883040612:web:473f540c99efc20e8d2271"
+    apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
+    authDomain: "auction-71c28.firebaseapp.com",
+    databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "auction-71c28",
+    storageBucket: "auction-71c28.firebasestorage.app",
+    messagingSenderId: "92883040612",
+    appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const listDiv = document.getElementById('list');
+/* Listen for latest 10 bids */
+db.ref("recentBids").orderByChild("ts").limitToLast(10).on("value", snap=>{
+    const list = document.getElementById("bidList");
+    list.innerHTML = "";
 
-db.ref('last10bids').on('value', snap=>{
-  listDiv.innerHTML = "";
-  const arr = snap.val() || [];
-  arr.forEach(item=>{
-    listDiv.innerHTML += `<div class="line">${item.team} — <b>${item.amount}</b></div>`;
-  });
+    const data = snap.val();
+    if(!data) return;
+
+    const arr = Object.values(data).sort((a,b)=> a.ts - b.ts);
+
+    arr.forEach(row=>{
+        const div = document.createElement("div");
+        div.className = "bidRow";
+
+        div.innerHTML = `
+            <div class="teamName">${row.team}</div>
+            <div class="bidAmount">${row.bid}</div>
+        `;
+
+        list.appendChild(div);
+    });
 });
 </script>
 
