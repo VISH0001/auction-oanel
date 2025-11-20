@@ -48,21 +48,42 @@ body{
 
 /* Team grid */
 .team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:92%; max-width:880px; margin:20px auto; }
-.team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); position:relative; }
+.team-cell{
+  background:#001621;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+  border:1px solid rgba(0,240,255,0.15);
+  position:relative;
+
+  /* NEW glowing animation */
+  animation: teamGlow 2.2s ease-in-out infinite;
+}
+
+/* Editable team name glowing input */
 .team-cell input{
-  width:90%;
-  margin:0 auto;
-  display:block;
+  width:100%;
   padding:8px;
   background:#00121c;
   border-radius:8px;
   color:var(--neon);
-  border:1px solid rgba(0,240,255,0.2);
-  text-align:center;
+  border:1px solid rgba(0,240,255,0.25);
+
+  /* Text glowing */
+  text-shadow:0 0 6px var(--neon), 0 0 12px var(--neon);
 }
 
-/* compact max text under name */
-.team-max{ margin-top:8px; font-size:13px; color:#9ffcff; font-weight:700; }
+/* Max bid glowing text */
+.team-max{
+  margin-top:8px;
+  font-size:13px;
+  color:#9ffcff;
+  font-weight:700;
+
+  /* Glow */
+  text-shadow:0 0 6px #9ffcff, 0 0 12px #9ffcff;
+}
+
 
 /* Increment rules table */
 .rules { width:92%; max-width:880px; margin:12px auto; background:#01121a; padding:12px; border-radius:10px; border:1px solid rgba(0,240,255,0.06); }
