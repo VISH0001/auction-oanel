@@ -4,67 +4,59 @@
 <meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 body {
-  background: radial-gradient(circle, #06273a, #00101a 70%);
-  color: #9ffcff;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 30px;
-  text-align: center;
+  background:#00101a;
+  color:#9ffcff;
+  font-family:Arial, sans-serif;
+  padding:30px;
+  text-align:center;
 }
 
+/* Title */
 h2 {
   color:#00eaff;
-  font-size:32px;
-  text-shadow:0 0 12px #00eaff, 0 0 24px #00eaff;
-  margin-bottom:25px;
+  font-size:40px;
+  text-shadow:0 0 20px #00eaff,0 0 40px #00eaff;
+  margin-bottom:40px;
 }
 
-/* Container */
+/* Main container */
 #list {
-  max-width: 600px;
-  margin: auto;
+  width:90%;
+  max-width:650px;
+  margin:0 auto;
 }
 
-/* Box for each bid */
-.bidRow {
-  width: 100%;
-  padding: 14px 20px;
-  margin: 10px 0;
-  border-radius: 14px;
-  font-size: 20px;
-  font-weight: 600;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  background: rgba(0, 20, 30, 0.7);
-  border: 1px solid rgba(0,240,255,0.3);
-  box-shadow: 0 0 12px rgba(0,240,255,0.35), 0 0 24px rgba(0,240,255,0.25);
+/* Bid box */
+.bidItem {
+  padding:16px 22px;
+  border-radius:12px;
+  margin:18px 0;
+  display:flex;
+  justify-content:space-between;
+  font-size:22px;
+  font-weight:700;
+  color:white;
+  border:1px solid rgba(255,255,255,0.15);
+  box-shadow:0 0 18px rgba(0,255,255,0.25);
+  animation:glowPulse 2.4s infinite ease-in-out;
 }
 
-/* Team-specific color glows */
-.t1 { box-shadow:0 0 15px #00eaff; border-color:#00eaff; }
-.t2 { box-shadow:0 0 15px #00ff9d; border-color:#00ff9d; }
-.t3 { box-shadow:0 0 15px #ffd000; border-color:#ffd000; }
-.t4 { box-shadow:0 0 15px #ff5e00; border-color:#ff5e00; }
-.t5 { box-shadow:0 0 15px #8bff00; border-color:#8bff00; }
-.t6 { box-shadow:0 0 15px #ff4df0; border-color:#ff4df0; }
-.t7 { box-shadow:0 0 15px #7a9cff; border-color:#7a9cff; }
-.t8 { box-shadow:0 0 15px #ff6161; border-color:#ff6161; }
-
-/* Text color inside each row */
-.teamName { text-align:left; }
-.amount { text-align:right; color:white; }
-
+/* Glow animation */
+@keyframes glowPulse {
+  0% { box-shadow:0 0 10px rgba(0,255,255,0.25); }
+  50% { box-shadow:0 0 26px rgba(0,255,255,0.45); }
+  100% { box-shadow:0 0 10px rgba(0,255,255,0.25); }
+}
 </style>
 </head>
 
 <body>
 
 <h2>Last 10 Bids</h2>
+
 <div id="list"></div>
 
 <!-- Firebase -->
@@ -72,6 +64,7 @@ h2 {
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -84,42 +77,55 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const listDiv = document.getElementById("list");
+// Team-specific colors (NO PINK)
+const teamColors = {
+  "Team A":"#00eaff",
+  "Team B":"#00ff88",
+  "Team C":"#ffaa00",
+  "Team D":"#ff4444",
+  "Team E":"#bb88ff",
+  "Team F":"#66ccff",
+  "Team G":"#aaff33",
+  "Team H":"#ffdd33"
+};
 
-/* TEAM COLORS – index based */
-function teamColorClass(teamName) {
-  if (!teamName) return "t1";
-  const name = teamName.toLowerCase();
-
-  if (name.includes("a")) return "t1";   // Team A
-  if (name.includes("b")) return "t2";   // Team B
-  if (name.includes("c")) return "t3";   // Team C
-  if (name.includes("d")) return "t4";   // Team D
-  if (name.includes("e")) return "t5";   // Team E
-  if (name.includes("f")) return "t6";   // Team F
-  if (name.includes("g")) return "t7";   // Team G
-  if (name.includes("h")) return "t8";   // Team H
-
-  return "t1";
-}
-
-/* Listen for last10bids updates */
-db.ref("last10bids").on("value", snap => {
-  const arr = snap.val() || [];
-  listDiv.innerHTML = "";
-
-  arr.forEach(item => {
-    const cls = teamColorClass(item.team);
-
-    listDiv.innerHTML += `
-      <div class="bidRow ${cls}">
-        <div class="teamName">${item.team}</div>
-        <div class="amount">${item.amount}</div>
-      </div>
-    `;
-  });
+// If custom names exist (Gladiators, Ajit, etc)
+let dynamicTeams = {};
+db.ref('teams').on('value', s => { 
+  dynamicTeams = s.val() || {}; 
 });
 
+const listDiv = document.getElementById('list');
+
+/* LISTENER FOR LAST 10 BIDS */
+db.ref('last10bids').on('value', snap => {
+  listDiv.innerHTML = "";
+  const arr = snap.val() || [];
+
+  arr.forEach(item => {
+    const teamName = item.team;
+    const amt = item.amount;
+
+    // Resolve color (fallback if unknown)
+    const color =
+      teamColors[teamName] ||
+      teamColors[dynamicTeams[teamName]] ||
+      "#00eaff";
+
+    const box = `
+      <div class="bidItem" style="background:${color}22; border-color:${color}; box-shadow:0 0 18px ${color};">
+        <div style="color:${color}; text-shadow:0 0 10px ${color};">
+          ${teamName}
+        </div>
+        <div style="color:${color}; text-shadow:0 0 10px ${color};">
+          ${amt}
+        </div>
+      </div>
+    `;
+
+    listDiv.innerHTML += box;
+  });
+});
 </script>
 
 </body>
