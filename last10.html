@@ -104,7 +104,7 @@ db.ref("last10bids").on("value", snap => {
     const teamNum = Number(item.teamNum || 1);
     const colors = teamColors[teamNum] || teamColors[1];
 
-    const opacity = Math.max(0.25, 1.5 - index * 0.09); // fade older rows
+    const opacity = Math.max(0.1, 1 - index * 0.1); // fade older rows
 
     const row = document.createElement("div");
     row.className = "bidRow";
