@@ -2,46 +2,48 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Bid Button</title>
+<title>Owner Bid Button</title>
 <style>
 body{
     background:#00121c;
     font-family:Arial;
-    color:#00eaff;
     text-align:center;
-    padding-top:40px;
+    padding-top:60px;
+    color:#00eaff;
 }
+
+#teamLabel{
+    margin-top:20px;
+    font-size:28px;
+    color:#9ffcff;
+}
+
 button{
     width:80%;
-    padding:20px;
-    margin:12px;
-    font-size:24px;
-    border-radius:12px;
+    padding:25px;
+    margin:20px auto;
+    font-size:32px;
+    font-weight:bold;
     border:none;
+    border-radius:12px;
     background:#00eaff;
     color:#00121c;
-    font-weight:bold;
+    box-shadow:0 0 20px #00eaff;
 }
-button:hover{
-    filter:brightness(1.25);
+button:active{
+    transform:scale(0.97);
 }
 </style>
 </head>
 
 <body>
 
-<h2>Select Your Team</h2>
+<h2>Tap to Bid</h2>
 
-<button onclick="sendBid(1)">Team A</button>
-<button onclick="sendBid(2)">Team B</button>
-<button onclick="sendBid(3)">Team C</button>
-<button onclick="sendBid(4)">Team D</button>
-<button onclick="sendBid(5)">Team E</button>
-<button onclick="sendBid(6)">Team F</button>
-<button onclick="sendBid(7)">Team G</button>
-<button onclick="sendBid(8)">Team H</button>
+<button id="bidBtn">PLACE BID</button>
+<div id="teamLabel"></div>
 
-<!-- 🔥 Firebase CDN scripts (NOT ES modules) -->
+<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -54,23 +56,42 @@ const firebaseConfig = {
     projectId: "auction-71c28",
     storageBucket: "auction-71c28.firebasestorage.app",
     messagingSenderId: "92883040612",
-    appId: "1:92883040612:web:473f540c99efc20e8d2271",
-    measurementId: "G-CSTYSDR3HK"
+    appId: "1:92883040612:web:473f540c99efc20e8d2271"
 };
 
-// Init
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Send bid
-function sendBid(teamNum){
+// ------- TEAM URL READING -------
+const urlParams = new URLSearchParams(window.location.search);
+let teamNum = parseInt(urlParams.get("team"));
+
+// fallback if missing
+if(!teamNum || teamNum < 1 || teamNum > 8){
+    teamNum = 1;
+}
+
+const teams = {
+    1: "Team A",
+    2: "Team B",
+    3: "Team C",
+    4: "Team D",
+    5: "Team E",
+    6: "Team F",
+    7: "Team G",
+    8: "Team H"
+};
+
+document.getElementById("teamLabel").innerText = teams[teamNum];
+
+// ------- SEND BID -------
+document.getElementById("bidBtn").onclick = () => {
     db.ref("latestBid").set({
         teamNum: teamNum,
         time: Date.now()
     });
-}
+};
 </script>
 
 </body>
 </html>
-
