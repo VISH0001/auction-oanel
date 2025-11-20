@@ -1,4 +1,3 @@
-<!-- Save/replace as auction_panel.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,53 +6,131 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root{
-  --neon:#00eaff; --neon2:#9ffcff; --dark:#03121f;
-  /* team palette (team 1..8) */
-  --t1:#00eaff; --t2:#00ff88; --t3:#ffaa00; --t4:#ff4444;
-  --t5:#bb88ff; --t6:#66ccff; --t7:#aaff33; --t8:#ffdd33;
+  --dark-bg: #00111a;
+  --tile-bg: #001621;
+  --neon: #00eaff;
+  --neon2:#9ffcff;
 }
 body{
   margin:0;
-  background:radial-gradient(circle,#06273a,#00101a 70%);
   font-family:Arial,Helvetica,sans-serif;
+  background:radial-gradient(circle,#06273a,#00101a 70%);
   color:white;
   -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
 }
-.top-panel{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; padding:18px; align-items:center; }
-.control-box{ padding:10px 12px; border-radius:10px; background:rgba(0,20,35,0.6); border:1px solid rgba(0,240,255,0.12); }
+
+/* Top controls */
+.top-panel{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  justify-content:center;
+  padding:18px;
+  align-items:center;
+}
+.control-box{
+  padding:10px 12px;
+  border-radius:10px;
+  background:rgba(0,20,35,0.6);
+  border:1px solid rgba(0,240,255,0.12);
+}
 .control-box label{ color:var(--neon2); font-size:13px; display:block; margin-bottom:6px; }
 .control-box input{ width:120px; padding:6px; border-radius:6px; border:1px solid rgba(0,240,255,0.12); background:#00121c; color:var(--neon); }
 
 /* Buttons */
 .button{ padding:10px 14px; border-radius:8px; border:0; background:var(--neon); color:#00131b; font-weight:700; cursor:pointer; box-shadow:0 6px 18px rgba(0,240,255,0.06); }
 
-/* Display */
-.display{ margin:18px auto; width:92%; max-width:760px; background:#00111a; padding:28px; border-radius:14px; text-align:center; border:1px solid rgba(0,240,255,0.3); box-shadow:0 0 20px rgba(0,240,255,0.4); margin-bottom:24px; }
-.big-bid{ font-size:72px; font-weight:800; color:var(--neon); text-shadow:0 0 10px var(--neon); }
-.team-label{ font-size:30px; color:var(--neon2); margin-top:6px; }
-.max-label{ font-size:14px; color:#9ffcff; margin-top:6px; }
+/* Display (current bid) - IPL style: left color strip + dark tile */
+.display{
+  width:92%;
+  max-width:760px;
+  margin:18px auto;
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  background:var(--dark-bg);
+  box-shadow:0 6px 26px rgba(0,0,0,0.6);
+}
+.display .color-strip{
+  width:12%;
+  min-width:64px;
+  height:100%;
+}
+.display .content{
+  padding:18px 22px;
+  flex:1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(255,255,255,0.01));
+}
+.title-small{ font-size:14px; color:var(--neon2); margin-bottom:6px; }
+.big-bid{ font-size:56px; font-weight:800; color:var(--neon); text-shadow:0 0 12px rgba(0,240,255,0.08); }
+.team-label{ font-size:20px; color:var(--neon2); margin-top:6px; }
 
-/* Team grid */
-.team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; width:92%; max-width:880px; margin:20px auto; }
-.team-cell{ background:#001621; padding:12px 14px; border-radius:12px; text-align:center; border:1px solid rgba(0,240,255,0.05); position:relative; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.team-cell input{ width:100%; padding:8px; background:#00121c; border-radius:8px; color:var(--neon); border:1px solid rgba(0,240,255,0.08); text-align:center; font-size:15px; }
-.team-max{ margin-top:10px; font-size:13px; color:#9ffcff; font-weight:700; }
+/* Team grid (admin editable) — IPL strip on left of each tile */
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  width:92%;
+  max-width:900px;
+  margin:20px auto;
+}
+.team-cell{
+  display:flex;
+  border-radius:12px;
+  overflow:hidden;
+  align-items:stretch;
+  background:var(--tile-bg);
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow:0 6px 18px rgba(0,0,0,0.45);
+}
+.team-cell .strip{
+  width:12%;
+  min-width:46px;
+}
+.team-cell .body{
+  padding:12px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.team-cell input{
+  border:0;
+  background:transparent;
+  color:var(--neon);
+  font-size:18px;
+  font-weight:700;
+  outline:none;
+  text-align:left;
+  width:100%;
+}
 
-/* Increment rules table and rows */
-.rules { width:92%; max-width:880px; margin:12px auto; background:#01121a; padding:12px; border-radius:10px; border:1px solid rgba(0,240,255,0.06); }
-.rules .row{ display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+/* max text */
+.team-max{ margin-top:8px; color:var(--neon2); font-size:13px; font-weight:700; }
+
+/* rules / controls */
+.rules { width:92%; max-width:900px; margin:16px auto; background:#01121a; padding:12px; border-radius:10px; border:1px solid rgba(0,240,255,0.06); }
+.rules .row{ display:flex; gap:8px; margin-bottom:8px; align-items:center;}
 .rules input{ padding:8px; border-radius:6px; border:1px solid rgba(0,240,255,0.08); background:#00121c; color:var(--neon); width:100%; }
 
-/* Controls row */
-.controls-row{ width:92%; max-width:880px; margin:16px auto 48px; display:flex; gap:12px; justify-content:center; align-items:center; }
-.small{ font-size:12px; color:#9ffcff; }
-.footer-note{ text-align:center; color:#9ffcff; margin-bottom:12px; }
+/* controls row */
+.controls-row{ width:92%; max-width:900px; margin:16px auto 36px; display:flex; gap:12px; justify-content:center; align-items:center;}
+.small{ font-size:12px; color:#9ffcff; text-align:center; }
+
+/* rejection note style */
 .rejection{ color:#ff9b9b; font-weight:700; margin-top:6px; text-align:center; }
 
-/* small helpers */
-.ghost { display:inline-block; width:8px; height:8px; border-radius:6px; margin-right:8px; vertical-align:middle; }
+/* responsive */
+@media (max-width:820px){
+  .team-grid{ grid-template-columns:repeat(2,1fr); }
+  .big-bid{ font-size:44px; }
+  .display .color-strip{ min-width:48px; }
+}
 </style>
 </head>
+
 <body>
 
 <!-- TOP CONTROLS -->
@@ -68,7 +145,6 @@ body{
     <input id="fallbackInc" type="number" value="10">
   </div>
 
-  <!-- Action buttons -->
   <button class="button" onclick="undoBid()">Undo</button>
   <button class="button" onclick="playerSold()">Player Sold</button>
   <button class="button" onclick="resetBid()">Reset</button>
@@ -76,14 +152,19 @@ body{
 </div>
 
 <!-- DISPLAY -->
-<div class="display">
-  <div style="font-size:18px; color:#9ffcff; margin-bottom:8px;">CURRENT BID</div>
-  <div class="big-bid" id="currentBid">100</div>
-  <div class="team-label" id="currentTeam">---</div>
-  <div id="rejectionNote" class="rejection"></div>
+<div class="display" id="mainDisplay">
+  <div class="color-strip" id="currentStrip" style="background:#01579b"></div>
+  <div class="content">
+    <div class="title-small">CURRENT BID</div>
+    <div class="big-bid" id="currentBid">100</div>
+    <div class="team-label" id="currentTeam">---</div>
+    <div id="rejectionNote" class="rejection"></div>
+  </div>
 </div>
 
-<div class="footer-note">Edit team names and increment rules below — changes sync to owners instantly.</div>
+<div class="footer-note" style="text-align:center; color:#9ffcff; margin-top:8px;">
+  Edit team names and increment rules below — changes sync to owners & owners' mobiles.
+</div>
 
 <!-- TEAM EDIT GRID -->
 <div class="team-grid" id="teamGrid"></div>
@@ -97,21 +178,54 @@ body{
     <div style="width:140px;color:var(--neon2);font-weight:700">Increment</div>
   </div>
 
-  <div class="row"><div style="width:60px;color:var(--neon2)">1</div><input id="r1_from" placeholder="e.g. 1" /><input id="r1_to" placeholder="e.g. 5" /><input id="r1_inc" placeholder="e.g. 1" /></div>
-  <div class="row"><div style="width:60px;color:var(--neon2)">2</div><input id="r2_from" placeholder="e.g. 6" /><input id="r2_to" placeholder="e.g. 11" /><input id="r2_inc" placeholder="e.g. 2" /></div>
-  <div class="row"><div style="width:60px;color:var(--neon2)">3</div><input id="r3_from" placeholder="e.g. 12" /><input id="r3_to" placeholder="e.g. 20" /><input id="r3_inc" placeholder="e.g. 3" /></div>
-  <div class="row"><div style="width:60px;color:var(--neon2)">4</div><input id="r4_from" placeholder="e.g. 21" /><input id="r4_to" placeholder="e.g. 50" /><input id="r4_inc" placeholder="e.g. 5" /></div>
-  <div class="row"><div style="width:60px;color:var(--neon2)">5</div><input id="r5_from" placeholder="e.g. 51" /><input id="r5_to" placeholder="e.g. 99999" /><input id="r5_inc" placeholder="e.g. 10" /></div>
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">1</div>
+    <input id="r1_from" placeholder="e.g. 1" />
+    <input id="r1_to"   placeholder="e.g. 5" />
+    <input id="r1_inc"  placeholder="e.g. 1" />
+  </div>
 
-  <div style="text-align:right; margin-top:6px;"><button class="button" onclick="saveRules()">Save Rules</button></div>
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">2</div>
+    <input id="r2_from" placeholder="e.g. 6" />
+    <input id="r2_to"   placeholder="e.g. 11" />
+    <input id="r2_inc"  placeholder="e.g. 2" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">3</div>
+    <input id="r3_from" placeholder="e.g. 12" />
+    <input id="r3_to"   placeholder="e.g. 20" />
+    <input id="r3_inc"  placeholder="e.g. 3" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">4</div>
+    <input id="r4_from" placeholder="e.g. 21" />
+    <input id="r4_to"   placeholder="e.g. 50" />
+    <input id="r4_inc"  placeholder="e.g. 5" />
+  </div>
+
+  <div class="row">
+    <div style="width:60px;color:var(--neon2)">5</div>
+    <input id="r5_from" placeholder="e.g. 51" />
+    <input id="r5_to"   placeholder="e.g. 99999" />
+    <input id="r5_inc"  placeholder="e.g. 10" />
+  </div>
+
+  <div style="text-align:right; margin-top:6px;">
+    <button class="button" onclick="saveRules()">Save Rules</button>
+  </div>
 </div>
 
-<!-- center controls row -->
-<div class="controls-row"><div class="small">First bid equals starting bid (no increment). Later bids use the rules above (To is inclusive).</div></div>
+<div class="controls-row">
+  <div class="small">First bid equals starting bid (no increment). Later bids use the rules above (To is inclusive).</div>
+</div>
 
 <!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
 /* ---------- Firebase config ---------- */
 const firebaseConfig = {
@@ -127,31 +241,68 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* ---------- owner keys + default teams ---------- */
-const ownerKeys = {"t1_92fA6k3Z":1,"t2_Qp71xL0S":2,"t3_n88RwA1D":3,"t4_F92amP0L":4,"t5_cH7x9LmQ":5,"t6_B1mZ3kPx":6,"t7_Ux8q21Nv":7,"t8_Yp0mR4Ws":8};
-const defaultTeams = {1:"Team A",2:"Team B",3:"Team C",4:"Team D",5:"Team E",6:"Team F",7:"Team G",8:"Team H"};
+const ownerKeys = {
+  "t1_92fA6k3Z":1,"t2_Qp71xL0S":2,"t3_n88RwA1D":3,"t4_F92amP0L":4,
+  "t5_cH7x9LmQ":5,"t6_B1mZ3kPx":6,"t7_Ux8q21Nv":7,"t8_Yp0mR4Ws":8
+};
+const defaultTeams = {1:"Team 1",2:"Team 2",3:"Team 3",4:"Team 4",5:"Team 5",6:"Team 6",7:"Team 7",8:"Team 8"};
 
-/* ensure initial DB nodes */
+/* ---------- TEAM COLORS (your confirmed list) ----------
+1: #01579b   (Blue)
+2: #c62828   (Red)
+3: #4e342e   (Brown)
+4: #4527a0   (Purple)
+5: #2e7d32   (Green)
+6: #283593   (Indigo)
+7: #ad1457   (Magenta)
+8: #ff8f00   (Orange)
+-----------------------------------------------------*/
+const TEAM_COLORS = {
+  1: { base:'#01579b', glow:'rgba(1,87,155,0.18)' },
+  2: { base:'#c62828', glow:'rgba(198,40,40,0.18)' },
+  3: { base:'#4e342e', glow:'rgba(78,52,46,0.18)' },
+  4: { base:'#4527a0', glow:'rgba(69,39,160,0.18)' },
+  5: { base:'#2e7d32', glow:'rgba(46,125,50,0.18)' },
+  6: { base:'#283593', glow:'rgba(40,53,147,0.18)' },
+  7: { base:'#ad1457', glow:'rgba(173,20,87,0.18)' },
+  8: { base:'#ff8f00', glow:'rgba(255,143,0,0.18)' }
+};
+
+/* ---------- ensure initial DB nodes ---------- */
 db.ref('teams').once('value').then(snap=>{ if(!snap.exists()) db.ref('teams').set(defaultTeams); });
 db.ref('ownerKeys').once('value').then(snap=>{ if(!snap.exists()) db.ref('ownerKeys').set(ownerKeys); });
 
-/* default increments if absent */
+// default increments
 db.ref('increments').once('value').then(snap=>{
   if(!snap.exists()){
-    const defaults = [{from:1,to:5,inc:1},{from:6,to:11,inc:2},{from:12,to:20,inc:3},{from:21,to:50,inc:5},{from:51,to:99999,inc:10}];
+    const defaults = [
+      {from:1, to:5, inc:1},
+      {from:6, to:11, inc:2},
+      {from:12, to:20, inc:3},
+      {from:21, to:50, inc:5},
+      {from:51, to:99999, inc:10}
+    ];
     db.ref('increments').set(defaults);
   }
 });
 
-/* ---------- UI: build team grid ---------- */
+/* ---------- UI: build team grid (strip + body) ---------- */
 const teamGrid = document.getElementById('teamGrid');
 for(let i=1;i<=8;i++){
-  const div = document.createElement('div');
-  div.className = 'team-cell';
-  div.innerHTML = `<input id="t${i}" data-team="${i}" placeholder="Team ${i}"><div id="t${i}_max" class="team-max">Max: —</div>`;
-  teamGrid.appendChild(div);
+  const tile = document.createElement('div');
+  tile.className = 'team-cell';
+  const col = TEAM_COLORS[i].base;
+  tile.innerHTML = `
+    <div class="strip" style="background:${col}"></div>
+    <div class="body">
+      <input id="t${i}" data-team="${i}" placeholder="Team ${i}">
+      <div id="t${i}_max" class="team-max">Max: —</div>
+    </div>
+  `;
+  teamGrid.appendChild(tile);
 }
 
-/* sync team names from firebase */
+/* sync team names */
 db.ref('teams').on('value', snap=>{
   const teams = snap.val() || defaultTeams;
   for(let i=1;i<=8;i++){
@@ -160,26 +311,28 @@ db.ref('teams').on('value', snap=>{
   }
 });
 
-/* when admin edits names, push to firebase */
+/* admin edits -> push to firebase (debounced) */
 let tTimer = null;
 teamGrid.addEventListener('input', e=>{
   if(!e.target.matches('input')) return;
   clearTimeout(tTimer);
   tTimer = setTimeout(()=>{
     const obj = {};
-    for(let i=1;i<=8;i++) obj[i] = document.getElementById('t'+i).value || ('Team '+i);
+    for(let i=1;i<=8;i++){
+      obj[i] = document.getElementById('t'+i).value || ('Team '+i);
+    }
     db.ref('teams').set(obj);
   }, 400);
 });
 
-/* increments */
+/* load increments into memory */
 let increments = [];
 db.ref('increments').on('value', snap=>{
   increments = snap.val() || [];
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
 });
 
-/* max bids mirror */
+/* mirror maxBids */
 let maxBids = {};
 db.ref('maxBids').on('value', snap=>{
   maxBids = snap.val() || {};
@@ -192,26 +345,29 @@ db.ref('maxBids').on('value', snap=>{
   }
 });
 
-/* Google Sheets polling (keeps maxBids updated) */
+/* Poll Google Sheet for maxBids (as before) */
 const SHEET_ID = "1-1glQa5EjXTJg7MHYuhh1sRNaLTFfQZvlmVLnUE_HYc";
 const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=B27:I27`;
 function fetchSheetOnce(){
-  fetch(GVIZ_URL).then(r=>r.text()).then(txt=>{
-    const jsonText = txt.replace(/^[^\(]*\(/,'').replace(/\);?$/,'');
-    const obj = JSON.parse(jsonText);
-    const rows = obj.table && obj.table.rows && obj.table.rows[0] && obj.table.rows[0].c;
-    if(!rows) return;
-    const newMax = {};
-    for(let i=0;i<8;i++){
-      const cell = rows[i];
-      let val = null;
-      if(cell && cell.v !== null && cell.v !== undefined) val = Number(cell.v);
-      if(val === null || isNaN(val)) val = 0;
-      newMax[String(i+1)] = val;
-    }
-    maxBids = newMax;
-    db.ref('maxBids').set(maxBids).catch(e=>console.error('maxBids write err',e));
-  }).catch(err=>console.warn('sheet fetch failed',err));
+  fetch(GVIZ_URL)
+    .then(r=>r.text())
+    .then(txt=>{
+      const jsonText = txt.replace(/^[^\(]*\(/,'').replace(/\);?$/,'');
+      const obj = JSON.parse(jsonText);
+      const rows = obj.table && obj.table.rows && obj.table.rows[0] && obj.table.rows[0].c;
+      if(!rows) return;
+      const newMax = {};
+      for(let i=0;i<8;i++){
+        const cell = rows[i];
+        let val = null;
+        if(cell && cell.v !== null && cell.v !== undefined) val = Number(cell.v);
+        if(val === null || isNaN(val)) val = 0;
+        newMax[String(i+1)] = val;
+      }
+      maxBids = newMax;
+      db.ref('maxBids').set(maxBids).catch(e=>console.error('maxBids write err',e));
+    })
+    .catch(err=> console.warn('sheet fetch failed',err));
 }
 fetchSheetOnce();
 setInterval(fetchSheetOnce, 10000);
@@ -223,41 +379,55 @@ function getIncrementFor(bidValue){
     const r = increments[i];
     const from = Number(r.from);
     const to = Number(r.to);
-    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue <= to) return Number(r.inc) || 1;
+    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue <= to){
+      return Number(r.inc) || 10;
+    }
   }
   const last = increments[increments.length-1];
-  return (last && Number(last.inc)) ? Number(last.inc) : 1;
+  return (last && Number(last.inc)) ? Number(last.inc) : 10;
 }
 
 function updateOwners(){
-  db.ref('liveDisplay').set({ currentBid: currentBid, currentTeam: document.getElementById('currentTeam').innerText, ts: Date.now() }).catch(err=> console.error('updateOwners err', err));
+  db.ref('liveDisplay').set({
+    currentBid: currentBid,
+    currentTeam: document.getElementById('currentTeam').innerText,
+    ts: Date.now()
+  }).catch(err=> console.error('updateOwners err', err));
 }
 
 /* ---------- last10bids helpers ---------- */
-function pushLast10(teamNum, teamName, amount){
-  // push new entry and trim to last 10 (server side array replacement)
+function pushToLast10(teamNum, amount, teamName){
+  // push newest at start
   db.ref('last10bids').once('value').then(snap=>{
-    const arr = snap.val() || [];
-    // create object with teamNum, team, amount
-    const obj = { teamNum: Number(teamNum), team: teamName, amount: amount };
-    arr.unshift(obj);               // newest at index 0
-    if(arr.length > 10) arr.length = 10;
-    db.ref('last10bids').set(arr).catch(e=>console.error('pushLast10 err',e));
-  }).catch(e=>console.error('pushLast10 read err', e));
-}
-function clearLast10(){
-  db.ref('last10bids').set([]).catch(e=>console.error('clearLast10 err',e));
+    let arr = snap.val() || [];
+    arr.unshift({ teamNum: teamNum, amount: amount, team: teamName });
+    arr = arr.slice(0,10);
+    db.ref('last10bids').set(arr);
+  });
 }
 
-/* ---------- Auction core ---------- */
+function removeTopLast10(){ // remove the most recent item
+  db.ref('last10bids').once('value').then(snap=>{
+    let arr = snap.val() || [];
+    if(arr.length>0){
+      arr.shift();
+      db.ref('last10bids').set(arr);
+    }
+  });
+}
+
+/* ---------- Auction state ---------- */
 let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
+let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
 let history = [];
 let lastBidTeam = null;
 let saleLocked = false;
 let auctionRunning = false;
 
-/* sync auction state & button label */
-db.ref('auctionState').on('value', snap => {
+// sync increments already done above
+
+// auction state from firebase
+db.ref('auctionState').on('value', snap=>{
   auctionRunning = (snap.val() === "running");
   const startBtn = document.getElementById('startAuctionBtn');
   if(startBtn) startBtn.innerText = auctionRunning ? 'Auction Running' : 'Start Auction';
@@ -270,11 +440,12 @@ function startAuction(){
   auctionRunning = true;
 }
 
-/* apply admin settings (resets history but not last10bids) */
+/* apply settings */
 function applySettings(){
   const newStart = parseInt(document.getElementById('startBid').value,10);
   const newFallback = parseInt(document.getElementById('fallbackInc').value,10);
   if(!Number.isNaN(newStart)) currentBid = newStart;
+  if(!Number.isNaN(newFallback)) fallbackInc = newFallback;
   lastBidTeam = null;
   history = [];
   saleLocked = false;
@@ -283,10 +454,20 @@ function applySettings(){
   updateOwners();
 }
 
-/* update display */
-function updateDisplay(team){ document.getElementById('currentBid').innerText = currentBid; document.getElementById('currentTeam').innerText = team; }
+/* update display and color strip per team */
+function updateDisplay(team){
+  document.getElementById('currentBid').innerText = currentBid;
+  document.getElementById('currentTeam').innerText = team;
+}
 
-/* compute next bid without changing state */
+/* helper to set currentStrip color */
+function setCurrentStrip(teamNum){
+  const strip = document.getElementById('currentStrip');
+  const col = (TEAM_COLORS[teamNum] && TEAM_COLORS[teamNum].base) ? TEAM_COLORS[teamNum].base : TEAM_COLORS[1].base;
+  strip.style.background = col;
+}
+
+/* compute next bid amount */
 function computeNextBidAmountIf(teamNum){
   const isFirstAccepted = (history.length === 0);
   if(isFirstAccepted) return currentBid;
@@ -294,7 +475,7 @@ function computeNextBidAmountIf(teamNum){
   return Number(currentBid) + Number(inc);
 }
 
-/* placeBid (also records to last10bids) */
+/* place bid */
 function placeBid(teamNum){
   if (saleLocked) return;
   if (!auctionRunning){
@@ -308,21 +489,27 @@ function placeBid(teamNum){
   const nextValue = computeNextBidAmountIf(teamNum);
 
   if(teamMax > 0 && nextValue > teamMax){
-    db.ref('rejections/' + String(teamNum)).set({ time: Date.now(), reason: 'exceeds_max', max: teamMax, attempted: nextValue }).catch(e=>console.error('rejection write err',e));
+    db.ref('rejections/' + String(teamNum)).set({
+      time: Date.now(),
+      reason: 'exceeds_max',
+      max: teamMax,
+      attempted: nextValue
+    }).catch(e=>console.error('rejection write err',e));
     document.getElementById('rejectionNote').innerText = `Bid rejected for Team ${teamNum} — max ${teamMax}`;
     setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 7000);
     return;
   }
 
   const isFirstAccepted = (history.length === 0);
+  const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
+
   if(isFirstAccepted){
     lastBidTeam = teamNum;
     history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
-    const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
     updateDisplay(teamName);
+    setCurrentStrip(teamNum);
+    pushToLast10(teamNum, currentBid, teamName); // first bid uses starting bid
     updateOwners();
-    // record a last10 entry (starting bid accepted)
-    pushLast10(teamNum, teamName, currentBid);
     return;
   }
 
@@ -330,71 +517,79 @@ function placeBid(teamNum){
   lastBidTeam = teamNum;
   history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
   currentBid = Number(currentBid) + Number(inc);
-  const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
   updateDisplay(teamName);
+  setCurrentStrip(teamNum);
+  pushToLast10(teamNum, currentBid, teamName);
   updateOwners();
-  // record new bid in last10
-  pushLast10(teamNum, teamName, currentBid);
 }
 
-/* Undo */
+/* undo */
 function undoBid(){
+  // if sold, allow undo (as requested)
   saleLocked = false;
   db.ref('auctionState').set("running");
   auctionRunning = true;
+
   if(history.length === 0) return;
   const last = history.pop();
   currentBid = last.bid;
   lastBidTeam = null;
   updateDisplay(last.team);
+  setCurrentStrip(1); // revert strip to team1 default (or leave previous) - choose default for clarity
   updateOwners();
+
+  // remove most recent last10 entry
+  removeTopLast10();
 }
 
-/* Player sold -> stop auction and write sold entry to last10 (also leaves last10 intact) */
-function playerSold(){
-  if (!history.length) return;
-  saleLocked = true;
-  db.ref('auctionState').set("stopped");
-  auctionRunning = false;
-  const team = document.getElementById('currentTeam').innerText;
-  const bid  = document.getElementById('currentBid').innerText;
-  document.getElementById('currentTeam').innerText = `SOLD TO: ${team}`;
-  document.getElementById('currentBid').innerText = `${bid}`;
-  // push a "sold" entry to the last10 list (teamNum preserved)
-  // find teamNum from team inputs
-  let teamNum = null;
-  for(let i=1;i<=8;i++){
-    const nm = (document.getElementById('t'+i).value || '').trim();
-    if(nm === team) { teamNum = i; break; }
-  }
-  const teamName = team.replace(/^SOLD TO:\s*/, '') || (teamNum ? document.getElementById('t'+teamNum).value : team);
-  pushLast10(teamNum || 0, teamName, bid + " (SOLD)");
-  // notify owners
-  db.ref('liveDisplay').set({ currentBid: bid, currentTeam: "SOLD", soldTo: teamName, ts: Date.now() }).catch(e=>console.error('sold write err', e));
-}
-
-/* Reset -> stop auction, clear history and clear last10 (user wanted empty when reset) */
+/* reset */
 function resetBid(){
   db.ref('auctionState').set("stopped");
   auctionRunning = false;
   saleLocked = false;
+
   const newStart = parseInt(document.getElementById('startBid').value,10);
   currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
   history = [];
   lastBidTeam = null;
   document.getElementById('rejectionNote').innerText = '';
   updateDisplay('---');
+  setCurrentStrip(1);
   updateOwners();
-  // clear last10 on reset
-  clearLast10();
+
+  // clear last10 display
+  db.ref('last10bids').set([]);
+}
+
+/* player sold */
+function playerSold(){
+  if (!history.length) return; // can't sell if nobody bid
+  saleLocked = true;
+  db.ref('auctionState').set("stopped"); // stop auction
+  auctionRunning = false;
+
+  const team = document.getElementById('currentTeam').innerText;
+  const bid  = document.getElementById('currentBid').innerText;
+
+  document.getElementById('currentTeam').innerText = `SOLD TO: ${team}`;
+  document.getElementById('currentBid').innerText = `${bid}`;
+
+  db.ref('liveDisplay').set({
+    currentBid: bid,
+    currentTeam: "SOLD",
+    soldTo: team,
+    ts: Date.now()
+  }).catch(e=>console.error('sold write err', e));
 }
 
 /* keyboard admin bidding */
 document.addEventListener('keydown', e=>{
-  if(e.key >= '1' && e.key <= '8') placeBid(parseInt(e.key,10));
+  if(e.key >= '1' && e.key <= '8'){
+    placeBid(parseInt(e.key,10));
+  }
 });
 
-/* listen for owner bids (latestBid node) */
+/* listen for owner bids (latestBid node from owners mobile) */
 let lastSeenTime = 0;
 db.ref('latestBid').on('value', snap=>{
   const data = snap.val();
@@ -406,10 +601,12 @@ db.ref('latestBid').on('value', snap=>{
   placeBid(tnum);
 });
 
-/* initial */
+/* initial setup */
 window.addEventListener('load', ()=>{
   updateDisplay('---');
+  setCurrentStrip(1);
   updateOwners();
+
   db.ref('auctionState').once('value').then(s => {
     auctionRunning = (s.val() === "running");
     const startBtn = document.getElementById('startAuctionBtn');
