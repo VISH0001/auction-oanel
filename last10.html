@@ -1,70 +1,86 @@
+<!-- Save as last10bids.html -->
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Last 10 Bids</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body {
-  background:#00101a;
-  color:#9ffcff;
-  font-family:Arial, sans-serif;
-  padding:30px;
-  text-align:center;
+:root{
+  --bg:#00101a; --accent:#00eaff; --text:#dffcff;
+  /* same team palette used by auction_panel (team 1..8) */
+  --t1:#00eaff; --t2:#00ff88; --t3:#ffaa00; --t4:#ff4444;
+  --t5:#bb88ff; --t6:#66ccff; --t7:#aaff33; --t8:#ffdd33;
+}
+body{
+  margin:0; background:radial-gradient(circle,#06273a,#00101a 70%); color:var(--text); font-family:Arial,Helvetica,sans-serif; padding:26px;
+}
+h2{
+  text-align:center; color:var(--accent); text-shadow:0 0 14px var(--accent); margin-bottom:18px;
+  font-size:34px;
 }
 
-/* Title */
-h2 {
-  color:#00eaff;
-  font-size:40px;
-  text-shadow:0 0 20px #00eaff,0 0 40px #00eaff;
-  margin-bottom:40px;
-}
+/* container */
+.container{ max-width:720px; margin:0 auto; }
 
-/* Main container */
-#list {
-  width:90%;
-  max-width:650px;
-  margin:0 auto;
-}
-
-/* Bid box */
-.bidItem {
-  padding:16px 22px;
+/* list box */
+.bidBox{
+  background:transparent;
   border-radius:12px;
-  margin:18px 0;
+  padding:8px;
+}
+
+/* each row */
+.row{
   display:flex;
   justify-content:space-between;
-  font-size:22px;
-  font-weight:700;
-  color:white;
-  border:1px solid rgba(255,255,255,0.15);
-  box-shadow:0 0 18px rgba(0,255,255,0.25);
-  animation:glowPulse 2.4s infinite ease-in-out;
+  align-items:center;
+  padding:14px 18px;
+  margin:10px 0;
+  border-radius:10px;
+  color: #e8ffff;
+  font-weight:600;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.03);
+}
+/* team color backgrounds and glow — set via inline style from JS */
+.row .team { text-align:left; font-size:18px; }
+.row .amt  { text-align:right; font-size:18px; font-weight:800; }
+
+/* small rounded band at left (team color) */
+.row::before{
+  content: '';
+  position:absolute;
+  left:10px;
+  top:10px;
+  bottom:10px;
+  width:8px;
+  border-radius:6px;
+  opacity:0.95;
 }
 
-/* Glow animation */
-@keyframes glowPulse {
-  0% { box-shadow:0 0 10px rgba(0,255,255,0.25); }
-  50% { box-shadow:0 0 26px rgba(0,255,255,0.45); }
-  100% { box-shadow:0 0 10px rgba(0,255,255,0.25); }
+/* remove separators (user asked to remove dashed lines) */
+.line { border-bottom:none; }
+
+/* responsive */
+@media (max-width:600px){
+  .row{ padding:12px; font-size:16px; }
+  h2{ font-size:28px; }
 }
 </style>
 </head>
-
 <body>
-
-<h2>Last 10 Bids</h2>
-
-<div id="list"></div>
+<div class="container">
+  <h2>Last 10 Bids</h2>
+  <div id="list" class="bidBox"></div>
+</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script>
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
   authDomain: "auction-71c28.firebaseapp.com",
@@ -77,56 +93,62 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Team-specific colors (NO PINK)
-const teamColors = {
-  "Team A":"#00eaff",
-  "Team B":"#00ff88",
-  "Team C":"#ffaa00",
-  "Team D":"#ff4444",
-  "Team E":"#bb88ff",
-  "Team F":"#66ccff",
-  "Team G":"#aaff33",
-  "Team H":"#ffdd33"
-};
-
-// If custom names exist (Gladiators, Ajit, etc)
-let dynamicTeams = {};
-db.ref('teams').on('value', s => { 
-  dynamicTeams = s.val() || {}; 
-});
-
 const listDiv = document.getElementById('list');
 
-/* LISTENER FOR LAST 10 BIDS */
-db.ref('last10bids').on('value', snap => {
-  listDiv.innerHTML = "";
-  const arr = snap.val() || [];
+/* color map by team number (1..8) — matches auction_panel */
+const teamColors = {
+  1: getComputedStyle(document.documentElement).getPropertyValue('--t1') || '#00eaff',
+  2: getComputedStyle(document.documentElement).getPropertyValue('--t2') || '#00ff88',
+  3: getComputedStyle(document.documentElement).getPropertyValue('--t3') || '#ffaa00',
+  4: getComputedStyle(document.documentElement).getPropertyValue('--t4') || '#ff4444',
+  5: getComputedStyle(document.documentElement).getPropertyValue('--t5') || '#bb88ff',
+  6: getComputedStyle(document.documentElement).getPropertyValue('--t6') || '#66ccff',
+  7: getComputedStyle(document.documentElement).getPropertyValue('--t7') || '#aaff33',
+  8: getComputedStyle(document.documentElement).getPropertyValue('--t8') || '#ffdd33'
+};
 
-  arr.forEach(item => {
-    const teamName = item.team;
-    const amt = item.amount;
-
-    // Resolve color (fallback if unknown)
-    const color =
-      teamColors[teamName] ||
-      teamColors[dynamicTeams[teamName]] ||
-      "#00eaff";
-
-    const box = `
-      <div class="bidItem" style="background:${color}22; border-color:${color}; box-shadow:0 0 18px ${color};">
-        <div style="color:${color}; text-shadow:0 0 10px ${color};">
-          ${teamName}
-        </div>
-        <div style="color:${color}; text-shadow:0 0 10px ${color};">
-          ${amt}
-        </div>
-      </div>
-    `;
-
-    listDiv.innerHTML += box;
+/* render helper */
+function renderList(arr){
+  listDiv.innerHTML = '';
+  if(!arr || !arr.length) return;
+  arr.forEach((item, idx) => {
+    const tn = Number(item.teamNum) || 0;
+    const teamName = item.team || 'Team';
+    const amount = item.amount === undefined ? '' : String(item.amount);
+    const color = teamColors[tn] ? teamColors[tn].trim() : '#00eaff';
+    const row = document.createElement('div');
+    row.className = 'row';
+    // tinted background subtle
+    row.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.35), rgba(0,0,0,0.25))';
+    row.style.border = '1px solid rgba(255,255,255,0.02)';
+    // left color band
+    row.style.setProperty('--band', color);
+    row.style.boxShadow = `0 8px 28px ${hexToRgba(color,0.14)}`;
+    row.style.borderLeft = `6px solid ${hexToRgba(color,0.65)}`;
+    // team & amount elements
+    const l = document.createElement('div'); l.className = 'team'; l.textContent = teamName;
+    const r = document.createElement('div'); r.className = 'amt'; r.textContent = amount;
+    // set universal text color (keep same for both)
+    l.style.color = '#e8ffff';
+    r.style.color = '#e8ffff';
+    row.appendChild(l); row.appendChild(r);
+    listDiv.appendChild(row);
   });
+}
+
+/* utility to get rgba from hex */
+function hexToRgba(hex, alpha=1){
+  hex = hex.replace('#','').trim();
+  if(hex.length===3) hex = hex.split('').map(h=>h+h).join('');
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* listen to last10bids — newest first in DB (we store newest first there) */
+db.ref('last10bids').on('value', snap=>{
+  const arr = snap.val() || [];
+  renderList(arr);
 });
 </script>
-
 </body>
 </html>
