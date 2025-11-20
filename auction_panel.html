@@ -34,7 +34,18 @@ body{
 /* Team grid */
 .team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:92%; max-width:880px; margin:20px auto; }
 .team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); position:relative; }
-.team-cell input{ width:100%; padding:8px; background:#00121c; border-radius:8px; color:var(--neon); border:1px solid rgba(0,240,255,0.08); }
+.team-cell input{
+  width:90%;
+  margin:0 auto;
+  display:block;
+  padding:8px;
+  background:#00121c;
+  border-radius:8px;
+  color:var(--neon);
+  border:1px solid rgba(0,240,255,0.2);
+  text-align:center;
+}
+
 /* compact max text under name */
 .team-max{ margin-top:8px; font-size:13px; color:#9ffcff; font-weight:700; }
 
