@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sheet Display</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 20px;
+        font-family: "Roboto", Arial, sans-serif;
+        background: radial-gradient(circle at top, #02101d 0%, #040a16 40%, #00060f 100%);
+    }
+
+    .table-wrapper {
+        border-radius: 22px;
+        padding: 8px;
+        background: rgba(0, 240, 255, 0.12);
+        box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+        animation: outerGlow 3s infinite alternate;
+    }
+
+    @keyframes outerGlow {
+        from { box-shadow: 0 0 16px rgba(0, 240, 255, 0.3); }
+        to   { box-shadow: 0 0 36px rgba(0, 240, 255, 1); }
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    /* WIDTHS — PRICE = 1/5 OF TEAM */
+    col.sno   { width: 5%; }
+    col.team  { width: 10%; }
+    col.price { width: 2%; }
+
+    th {
+        padding: 14px;
+        border-radius: 12px;
+        border: 2px solid rgba(0, 240, 255, 0.45);
+        color: #ffffff;
+        font-weight: 700;
+        text-shadow: 0 0 10px black;
+        font-size: 22px;
+        text-align: center;
+    }
+
+    /* transparent header background for S.No */
+    th.snoHeader {
+        background: rgba(0,0,0,0.45);
+        color:#00eaff;
+        text-shadow: 0 0 10px #00eaff;
+    }
+
+    td {
+        padding: 12px;
+        border-radius: 12px;
+        border: 2px solid rgba(0, 240, 255, 0.25);
+        background: rgba(0,0,0,0.35);
+        text-align: center;
+        color: #e3faff;
+        font-size: 22px;
+        transition: 0.2s;
+    }
+
+    tr { box-shadow: 0 0 12px rgba(0,230,255,0.25); }
+
+    .teamCell {
+        color: white !important;
+        font-weight: 600;
+        text-shadow: 0 0 6px black;
+    }
+
+    .hidden-row td {
+        padding: 0;
+        height: 0;
+        border: none;
+        background: transparent;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="table-wrapper">
+<table id="dataTable">
+
+    <colgroup>
+        <col class="sno">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+        <col class="team"><col class="price">
+    </colgroup>
+
+    <thead>
+        <tr id="headerRow">
+            <th class="snoHeader">S.No</th>
+            <th id="h1"></th><th></th>
+            <th id="h2"></th><th></th>
+            <th id="h3"></th><th></th>
+            <th id="h4"></th><th></th>
+            <th id="h5"></th><th></th>
+            <th id="h6"></th><th></th>
+            <th id="h7"></th><th></th>
+            <th id="h8"></th><th></th>
+        </tr>
+
+        <tr class="hidden-row">
+            <td colspan="17"></td>
+        </tr>
+    </thead>
+
+    <tbody></tbody>
+</table>
+</div>
+
+<script>
+/* FINAL FIXED COLORS */
+const teamColors = {
+  1: { bg:"#0b4d6b", glow:"#11b2ff" },
+  2: { bg:"#5b1b1b", glow:"#ff4747" },
+  3: { bg:"#c07f00", glow:"#ffcf4d" },
+  4: { bg:"#3e1364", glow:"#b46dff" },
+  5: { bg:"#7c2e00", glow:"#ff7a33" },
+  6: { bg:"#00416a", glow:"#40aaff" },
+  7: { bg:"#6b0041", glow:"#ff2ebd" },
+  8: { bg:"#5a3b00", glow:"#d49b00" }
+};
+
+/* apply header colors */
+for (let t = 1; t <= 8; t++) {
+    const h = document.getElementById("h" + t);
+    h.innerText = "Team " + t;
+    h.style.background = teamColors[t].bg;
+    h.style.boxShadow = `0 0 14px ${teamColors[t].glow}`;
+}
+
+const sheetURL =
+  "https://docs.google.com/spreadsheets/d/1-1glQa5EjXTJg7MHYuhh1sRNaLTFfQZvlmVLnUE_HYc/export?format=csv&gid=0";
+
+async function loadData() {
+    try {
+        const res = await fetch(sheetURL);
+        const text = await res.text();
+        const rows = text.trim().split("\n").map(r => r.split(","));
+        const tbody = document.querySelector("tbody");
+        tbody.innerHTML = "";
+
+        let highestFilledRow = 0;
+
+        /* find last row with any content */
+        for (let i = 1; i <= 25; i++) {
+            const r = rows[i];
+            if (!r) continue;
+            for (let c = 1; c <= 16; c++) {
+                if ((r[c] || "").trim() !== "") highestFilledRow = i;
+            }
+        }
+
+        /* render filled rows only */
+        for (let index = 1; index <= highestFilledRow; index++) {
+            const row = rows[index];
+            if (!row) continue;
+
+            const tr = document.createElement("tr");
+
+            const sn = document.createElement("td");
+            sn.textContent = index;
+            tr.appendChild(sn);
+
+            for (let t = 1; t <= 8; t++) {
+                const pI  = 1 + (t - 1) * 2;
+                const prI = 2 + (t - 1) * 2;
+
+                let playerVal = row[pI]  || "";
+                let priceVal  = row[prI] || "";
+
+                const player = document.createElement("td");
+                const price  = document.createElement("td");
+
+                player.textContent = playerVal;
+                price.textContent  = priceVal;
+
+                if (playerVal.trim() !== "" || priceVal.trim() !== "") {
+                    const col = teamColors[t];
+                    [player, price].forEach(cell => {
+                        cell.classList.add("teamCell");
+                        cell.style.background = col.bg;
+                        cell.style.boxShadow  = `0 0 14px ${col.glow}`;
+                    });
+                }
+
+                tr.appendChild(player);
+                tr.appendChild(price);
+            }
+
+            tbody.appendChild(tr);
+        }
+
+    } catch (e) {
+        console.log("Error:", e);
+    }
+}
+
+loadData();
+setInterval(loadData, 5000);
+</script>
+
+</body>
+</html>
+
