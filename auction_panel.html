@@ -126,7 +126,13 @@ body{
   </div>
 
   <button class="button" onclick="applySettings()">Apply</button>
+
+  <!-- ⭐ NEW BUTTON ADDED HERE ⭐ -->
+  <button class="button" id="startBtn" onclick="startAuction()" style="background:#00ff95;">
+    Start Auction
+  </button>
 </div>
+
 
 <!-- DISPLAY -->
 <div class="display">
@@ -383,6 +389,20 @@ function updateOwners(){
 }
 
 /* ---------- Bid flow with max enforcement ---------- */
+  /* ---------- Auction Start Flag ---------- */
+let auctionRunning = false;
+
+// Sync auction state from Firebase
+db.ref('auctionState').on('value', snap => {
+  auctionRunning = (snap.val() === "running");
+});
+
+// Called when start button pressed
+function startAuction() {
+  db.ref('auctionState').set("running");
+  alert("Auction Started!");
+}
+
 function applySettings(){
   const newStart = parseInt(document.getElementById('startBid').value,10);
   const newFallback = parseInt(document.getElementById('fallbackInc').value,10);
@@ -412,6 +432,14 @@ function computeNextBidAmountIf(teamNum){
 
 // placeBid with max check
 function placeBid(teamNum){
+    // Block bid if auction not started
+  if (!auctionRunning) {
+    console.log("Auction not started yet.");
+    document.getElementById('rejectionNote').innerText = "Auction has NOT started.";
+    setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 3000);
+    return;
+  }
+
   if(lastBidTeam === teamNum){
     console.log('Ignored: same team cannot bid twice in a row');
     return;
@@ -493,7 +521,11 @@ db.ref('latestBid').on('value', snap=>{
 window.addEventListener('load', ()=>{
   updateDisplay('---');
   updateOwners();
+  db.ref('auctionState').once('value').then(s => {
+    auctionRunning = (s.val() === "running");
+  });
 });
+
 </script>
 
 </body>
