@@ -142,7 +142,7 @@ body{
   </div>
 
   <div class="control-box">
-    <label>Default Inc</label>
+    <label>Fallback Inc</label>
     <input id="fallbackInc" type="number" value="10">
   </div>
 
@@ -166,11 +166,10 @@ body{
   <div style="display:flex;gap:8px;margin-bottom:8px;">
     <div style="width:60px;color:var(--neon2);font-weight:700">Rule</div>
     <div style="flex:1;color:var(--neon2);font-weight:700">From (inclusive)</div>
-    <div style="flex:1;color:var(--neon2);font-weight:700">To (exclusive)</div>
+    <div style="flex:1;color:var(--neon2);font-weight:700">To (inclusive)</div>
     <div style="width:140px;color:var(--neon2);font-weight:700">Increment</div>
   </div>
 
-  <!-- Five rows -->
   <div class="row">
     <div style="width:60px;color:var(--neon2)">1</div>
     <input id="r1_from" placeholder="e.g. 1" />
@@ -180,29 +179,29 @@ body{
 
   <div class="row">
     <div style="width:60px;color:var(--neon2)">2</div>
-    <input id="r2_from" placeholder="e.g. 5" />
+    <input id="r2_from" placeholder="e.g. 6" />
     <input id="r2_to"   placeholder="e.g. 11" />
     <input id="r2_inc"  placeholder="e.g. 2" />
   </div>
 
   <div class="row">
     <div style="width:60px;color:var(--neon2)">3</div>
-    <input id="r3_from" placeholder="e.g. 11" />
+    <input id="r3_from" placeholder="e.g. 12" />
     <input id="r3_to"   placeholder="e.g. 20" />
     <input id="r3_inc"  placeholder="e.g. 3" />
   </div>
 
   <div class="row">
     <div style="width:60px;color:var(--neon2)">4</div>
-    <input id="r4_from" placeholder="e.g. 20" />
+    <input id="r4_from" placeholder="e.g. 21" />
     <input id="r4_to"   placeholder="e.g. 50" />
     <input id="r4_inc"  placeholder="e.g. 5" />
   </div>
 
   <div class="row">
     <div style="width:60px;color:var(--neon2)">5</div>
-    <input id="r5_from" placeholder="e.g. 50" />
-    <input id="r5_to"   placeholder="e.g. 9999" />
+    <input id="r5_from" placeholder="e.g. 51" />
+    <input id="r5_to"   placeholder="e.g. 99999" />
     <input id="r5_inc"  placeholder="e.g. 10" />
   </div>
 
@@ -214,7 +213,7 @@ body{
 <div class="undo-reset">
   <button class="button" onclick="undoBid()">Undo</button>
   <button class="button" onclick="resetBid()">Reset</button>
-  <div style="margin-top:8px;" class="small">First bid equals starting bid (no increment). Later bids use dynamic increments above.</div>
+  <div style="margin-top:8px;" class="small">First bid equals starting bid (no increment). Later bids use the rules above (To is inclusive).</div>
 </div>
 
 <!-- Firebase CDN -->
@@ -247,13 +246,12 @@ db.ref('teams').once('value').then(snap=>{ if(!snap.exists()) db.ref('teams').se
 db.ref('ownerKeys').once('value').then(snap=>{ if(!snap.exists()) db.ref('ownerKeys').set(ownerKeys); });
 db.ref('increments').once('value').then(snap=>{
   if(!snap.exists()){
-    // default 5 rules
     const defaults = [
       {from:1, to:5, inc:1},
-      {from:5, to:11, inc:2},
-      {from:11, to:20, inc:3},
-      {from:20, to:50, inc:5},
-      {from:50, to:99999, inc:10}
+      {from:6, to:11, inc:2},
+      {from:12, to:20, inc:3},
+      {from:21, to:50, inc:5},
+      {from:51, to:99999, inc:10}
     ];
     db.ref('increments').set(defaults);
   }
@@ -311,18 +309,17 @@ db.ref('increments').on('value', snap=>{
 function saveRules(){
   const arr = [];
   for(let i=1;i<=5;i++){
-    const from = parseFloat(document.getElementById(`r${i}_from`).value) || 0;
-    const to   = parseFloat(document.getElementById(`r${i}_to`).value) || 0;
-    const inc  = parseFloat(document.getElementById(`r${i}_inc`).value) || 0;
-    arr.push({from: from, to: to, inc: inc});
+    const from = parseFloat(document.getElementById(`r${i}_from`).value);
+    const to   = parseFloat(document.getElementById(`r${i}_to`).value);
+    const inc  = parseFloat(document.getElementById(`r${i}_inc`).value);
+    arr.push({from: isNaN(from)?0:from, to: isNaN(to)?0:to, inc: isNaN(inc)?0:inc});
   }
-  // simple normalization: sort by "from"
+  // sort by from
   arr.sort((a,b)=> a.from - b.from);
-  // write to DB
-  db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); });
+  db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); }).catch(err=>{ console.error(err); alert('Save failed'); });
 }
 
-/* ---------- Auction core (with first-bid behavior + dynamic increments) ---------- */
+/* ---------- Auction core (with first-bid + inclusive ranges) ---------- */
 let currentBid = parseInt(document.getElementById('startBid').value,10) || 100;
 let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 10;
 let history = [];
@@ -332,23 +329,20 @@ let increments = [];      // array of rules from firebase
 // load increments into memory for quick lookup
 db.ref('increments').on('value', snap=>{
   increments = snap.val() || [];
-  // ensure sorted by from
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
 });
 
-// helper: get increment for a given currentBid value
+// helper: get increment for a given currentBid value (TO is inclusive now)
 function getIncrementFor(bidValue){
   if(!increments || increments.length === 0) return fallbackInc;
-  // try find rule where bidValue >= from && bidValue < to
   for(let i=0;i<increments.length;i++){
     const r = increments[i];
-    const from = parseFloat(r.from);
-    const to = parseFloat(r.to);
-    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue < to){
+    const from = Number(r.from);
+    const to = Number(r.to);
+    if(!isNaN(from) && !isNaN(to) && bidValue >= from && bidValue <= to){
       return Number(r.inc) || fallbackInc;
     }
   }
-  // if nothing matched, use last rule's inc if present
   const last = increments[increments.length-1];
   return (last && Number(last.inc)) ? Number(last.inc) : fallbackInc;
 }
@@ -382,18 +376,15 @@ function updateDisplay(team){
 
 // placeBid: with first-bid special rule
 function placeBid(teamNum){
-  // ignore if repeated by same team
   if(lastBidTeam === teamNum){
     console.log('Ignored: same team cannot bid twice in a row');
     return;
   }
 
-  // Determine whether this is the very first accepted bid after reset/history empty
   const isFirstAccepted = (history.length === 0);
 
-  // If it's the first accepted bid, it should not increment currentBid
   if(isFirstAccepted){
-    // Accept bid at current price (no increment)
+    // first accepted bid uses currentBid as-is
     lastBidTeam = teamNum;
     history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
     const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
@@ -402,7 +393,6 @@ function placeBid(teamNum){
     return;
   }
 
-  // Normal flow: apply dynamic increment based on currentBid
   const inc = getIncrementFor(currentBid);
   lastBidTeam = teamNum;
   history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
@@ -446,7 +436,6 @@ db.ref('latestBid').on('value', snap=>{
   if(!data) return;
   if(!data.time || data.time <= lastSeenTime) return;
   lastSeenTime = data.time;
-  // validate team number is numeric
   const tnum = Number(data.teamNum);
   if(!tnum || tnum < 1 || tnum > 8) return;
   placeBid(tnum);
