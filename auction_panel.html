@@ -612,6 +612,47 @@ function playerSold(){
 }
 
 
+/* ---------- SAVE RULES BUTTON ---------- */
+function saveRules() {
+
+  const r1 = {
+    from: Number(document.getElementById("r1_from").value || 0),
+    to:   Number(document.getElementById("r1_to").value   || 0),
+    inc:  Number(document.getElementById("r1_inc").value  || 0)
+  };
+  const r2 = {
+    from: Number(document.getElementById("r2_from").value || 0),
+    to:   Number(document.getElementById("r2_to").value   || 0),
+    inc:  Number(document.getElementById("r2_inc").value  || 0)
+  };
+  const r3 = {
+    from: Number(document.getElementById("r3_from").value || 0),
+    to:   Number(document.getElementById("r3_to").value   || 0),
+    inc:  Number(document.getElementById("r3_inc").value  || 0)
+  };
+  const r4 = {
+    from: Number(document.getElementById("r4_from").value || 0),
+    to:   Number(document.getElementById("r4_to").value   || 0),
+    inc:  Number(document.getElementById("r4_inc").value  || 0)
+  };
+  const r5 = {
+    from: Number(document.getElementById("r5_from").value || 0),
+    to:   Number(document.getElementById("r5_to").value   || 0),
+    inc:  Number(document.getElementById("r5_inc").value  || 0)
+  };
+
+  const setArr = [r1,r2,r3,r4,r5];
+
+  db.ref("increments")
+    .set(setArr)
+    .then(() => {
+      alert("Rules Saved Successfully!");
+    })
+    .catch(err => {
+      alert("Error saving rules");
+      console.error(err);
+    });
+}
 
 /* keyboard admin bidding */
 document.addEventListener('keydown', e=>{
