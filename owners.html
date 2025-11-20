@@ -11,13 +11,58 @@ html,body{ height:100%; margin:0; background:var(--bg); font-family:Arial,Helvet
 
 /* BIG BUTTON (TOP 70%) */
 #bigButtonArea{ height:70%; display:flex; justify-content:center; align-items:center; }
-#bidBtn{ width:70vw; height:70vw; max-width:70vh; max-height:70vh; border-radius:50%; border:none; background:var(--glow); color:#00121c; font-size:36px; font-weight:bold; box-shadow:0 0 40px rgba(0,234,255,0.5); }
+#bidBtn{
+  width:70vw;
+  height:70vw;
+  max-width:70vh;
+  max-height:70vh;
+  border-radius:50%;
+  border:none;
+  background:var(--glow);
+  color:#00121c;
+  font-size:36px;
+  font-weight:bold;
+  box-shadow:
+    0 0 20px rgba(0,234,255,0.3),
+    0 0 40px rgba(0,234,255,0.25),
+    0 0 60px rgba(0,234,255,0.18);
+  cursor:pointer;
+  transition:transform 0.12s ease;
+  /* pulsing neon */
+  animation: neonPulse 1.8s ease-in-out infinite;
+}
+#bidBtn:active{ transform:scale(0.98); }
 
-/* INFO PANEL */
+/* info panel */
 #infoPanel{ height:30%; background:var(--panel); padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:center; border-top:2px solid rgba(0,64,96,0.6); }
 .label{ font-size:14px; color:var(--muted); } .value{ font-size:20px; font-weight:700; } .bigvalue{ font-size:28px; font-weight:800; } .full{ grid-column:1 / -1; text-align:center; } #error{ color:#ff6f6f; font-weight:700; }
 .maxbox{ color:#9ffcff; font-weight:700; font-size:16px; }
 .rej{ color:#ff9b9b; font-weight:800; }
+
+/* neon animation keyframes (same as admin) */
+@keyframes neonPulse {
+  0% {
+    box-shadow:
+      0 0 6px rgba(0,240,255,0.25),
+      0 0 15px rgba(0,240,255,0.15),
+      0 0 25px rgba(0,240,255,0.10);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow:
+      0 0 12px rgba(0,240,255,0.45),
+      0 0 32px rgba(0,240,255,0.35),
+      0 0 55px rgba(0,240,255,0.30);
+    opacity: 1;
+  }
+  100% {
+    box-shadow:
+      0 0 6px rgba(0,240,255,0.25),
+      0 0 15px rgba(0,240,255,0.15),
+      0 0 25px rgba(0,240,255,0.10);
+    opacity: 0.85;
+  }
+}
 </style>
 </head>
 
@@ -67,7 +112,7 @@ let myTeam = null;
 
 function lock(){
   el('bidBtn').disabled = true;
-  el('bidBtn').style.opacity = 0.4;
+  el('bidBtn').style.opacity = 0.45;
 }
 
 // validate key -> get team number
