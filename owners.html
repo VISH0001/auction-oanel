@@ -32,7 +32,6 @@ button:hover{
 
 <h2>Select Your Team</h2>
 
-<!-- TEAM BUTTONS -->
 <button onclick="sendBid(1)">Team A</button>
 <button onclick="sendBid(2)">Team B</button>
 <button onclick="sendBid(3)">Team C</button>
@@ -42,13 +41,12 @@ button:hover{
 <button onclick="sendBid(7)">Team G</button>
 <button onclick="sendBid(8)">Team H</button>
 
-<script type="module">
+<!-- 🔥 Firebase CDN scripts (NOT ES modules) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getDatabase, ref, set } 
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
-
-// SAME CONFIG AS MAIN FILE
+<script>
+// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
     authDomain: "auction-71c28.firebaseapp.com",
@@ -60,19 +58,18 @@ const firebaseConfig = {
     measurementId: "G-CSTYSDR3HK"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+// Init
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// SEND BID TO FIREBASE
-window.sendBid = function(teamNum){
-    set(ref(db, "latestBid"), {
+// Send bid
+function sendBid(teamNum){
+    db.ref("latestBid").set({
         teamNum: teamNum,
         time: Date.now()
     });
-};
-
+}
 </script>
 
 </body>
 </html>
-
