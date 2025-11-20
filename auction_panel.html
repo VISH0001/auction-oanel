@@ -400,8 +400,9 @@ db.ref('auctionState').on('value', snap => {
 // Called when start button pressed
 function startAuction() {
   db.ref('auctionState').set("running");
-  alert("Auction Started!");
+  // No popup
 }
+
 
 function applySettings(){
   const newStart = parseInt(document.getElementById('startBid').value,10);
@@ -489,6 +490,10 @@ function undoBid(){
   updateOwners();
 }
 function resetBid(){
+  // Stop auction after player is sold
+  db.ref('auctionState').set("stopped");
+  auctionRunning = false;
+
   const newStart = parseInt(document.getElementById('startBid').value,10);
   currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
   history = [];
@@ -497,6 +502,7 @@ function resetBid(){
   updateDisplay('---');
   updateOwners();
 }
+
 
 /* ---------- keyboard admin bidding & owner-triggered bids ---------- */
 document.addEventListener('keydown', e=>{
