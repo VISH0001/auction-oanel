@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live Bidding Panel</title>
+<style>
+:root{
+    --neon:#00eaff;
+    --neon2:#9ffcff;
+    --dark:#03121f;
+}
+body{
+    margin:0;
+    background:radial-gradient(circle,#06273a,#00101a 70%);
+    font-family:Arial,Helvetica,sans-serif;
+    color:white;
+    overflow-x:hidden;
+}
+
+/* HEADER CONTROLS */
+.top-panel{
+    margin-top:25px;
+    display:flex;
+    justify-content:center;
+    gap:20px;
+}
+
+.control-box{
+    padding:12px 18px;
+    border-radius:12px;
+    background:rgba(0,20,35,0.6);
+    box-shadow:0 0 25px rgba(0,240,255,0.15);
+    border:1px solid rgba(0,240,255,0.25);
+}
+.control-box label{
+    color:var(--neon2);
+    font-size:14px;
+    margin-right:6px;
+}
+.control-box input{
+    width:90px;
+    padding:6px 10px;
+    background:#00121c;
+    border:2px solid var(--neon);
+    border-radius:8px;
+    color:var(--neon);
+    text-align:center;
+    font-size:18px;
+}
+button{
+    padding:10px 18px;
+    border-radius:10px;
+    border:none;
+    font-weight:bold;
+    background:var(--neon);
+    color:#00131b;
+    cursor:pointer;
+    box-shadow:0 0 20px var(--neon);
+}
+button:hover{
+    filter:brightness(1.2);
+}
+
+/* CENTER DISPLAY */
+.display{
+    margin:50px auto;
+    width:400px;
+    background:#00111a;
+    padding:40px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 0 45px rgba(0,240,255,0.25);
+    border:2px solid rgba(0,240,255,0.2);
+}
+
+.big-bid{
+    font-size:100px;
+    font-weight:bold;
+    margin-bottom:10px;
+    color:var(--neon);
+    text-shadow:0 0 25px var(--neon);
+}
+.team-label{
+    font-size:40px;
+    color:var(--neon2);
+    text-shadow:0 0 20px var(--neon2);
+}
+
+/* TEAM GRID */
+.team-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    width:80%;
+    margin:40px auto;
+}
+.team-cell{
+    background:#001621;
+    border:2px solid rgba(0,240,255,0.2);
+    padding:15px;
+    border-radius:14px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 0 20px rgba(0,240,255,0.15);
+}
+.team-cell:hover{
+    background:#002737;
+    box-shadow:0 0 25px rgba(0,240,255,0.35);
+}
+.team-cell input{
+    width:100%;
+    padding:8px;
+    background:#00121c;
+    color:var(--neon);
+    border:2px solid var(--neon);
+    border-radius:8px;
+    text-align:center;
+    font-size:18px;
+}
+
+.undo-reset{
+    text-align:center;
+    margin-top:30px;
+}
+.undo-reset button{
+    margin:0 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- CONTROLS -->
+<div class="top-panel">
+    <div class="control-box">
+        <label>Starting Bid</label>
+        <input id="startBid" type="number" value="100">
+    </div>
+    <div class="control-box">
+        <label>Increment</label>
+        <input id="increment" type="number" value="10">
+    </div>
+    <button onclick="applySettings()">Apply</button>
+</div>
+
+<!-- DISPLAY -->
+<div class="display">
+
+    <div style="
+        font-size:32px;
+        color:#9ffcff;
+        margin-bottom:20px;
+        text-shadow:0 0 15px #00eaff;
+        letter-spacing:2px;
+    ">
+        CURRENT BID
+    </div>
+
+    <div class="big-bid" id="currentBid">100</div>
+
+    <div class="team-label" id="currentTeam">---</div>
+
+</div>
+
+
+<!-- TEAM GRID -->
+<div class="team-grid">
+    <div class="team-cell"><input id="t1" value="Team A"></div>
+    <div class="team-cell"><input id="t2" value="Team B"></div>
+    <div class="team-cell"><input id="t3" value="Team C"></div>
+    <div class="team-cell"><input id="t4" value="Team D"></div>
+    <div class="team-cell"><input id="t5" value="Team E"></div>
+    <div class="team-cell"><input id="t6" value="Team F"></div>
+    <div class="team-cell"><input id="t7" value="Team G"></div>
+    <div class="team-cell"><input id="t8" value="Team H"></div>
+</div>
+
+<!-- UNDO / RESET -->
+<div class="undo-reset">
+    <button onclick="undoBid()">Undo</button>
+    <button onclick="resetBid()">Reset</button>
+</div>
+
+
+<!-- 🔥 FIREBASE INITIALIZATION -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } 
+    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCX6FYo5gVgCmds7Xf63xF-Xcg6eIutQmk",
+    authDomain: "auction-71c28.firebaseapp.com",
+    databaseURL: "https://auction-71c28-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "auction-71c28",
+    storageBucket: "auction-71c28.firebasestorage.app",
+    messagingSenderId: "92883040612",
+    appId: "1:92883040612:web:473f540c99efc20e8d2271",
+    measurementId: "G-CSTYSDR3HK"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// we will add realtime logic NEXT
+
+// LISTEN FOR INCOMING BIDS FROM FIREBASE
+onValue(ref(db, "latestBid"), snapshot => {
+    const data = snapshot.val();
+    if (!data) return;
+    window.placeBid(data.teamNum);
+});
+
+
+</script>
+
+
+<!-- ORIGINAL JS LOGIC -->
+<script>
+
+let currentBid = 100;
+let increment = 10;
+let history = [];
+
+// APPLY SETTINGS
+function applySettings(){
+    currentBid = parseInt(document.getElementById("startBid").value);
+    increment = parseInt(document.getElementById("increment").value);
+    history = [];
+    updateDisplay("---");
+}
+
+// KEYPRESS HANDLER
+document.addEventListener("keydown", e => {
+    if(e.key >= "1" && e.key <= "8"){
+        placeBid(parseInt(e.key));
+    }
+});
+
+// PLACE BID
+function placeBid(teamNum){
+    history.push({ bid: currentBid, team: document.getElementById("currentTeam").innerText });
+
+    currentBid += increment;
+    const teamName = document.getElementById("t"+teamNum).value;
+
+    updateDisplay(teamName);
+}
+
+// UPDATE DISPLAY
+function updateDisplay(team){
+    document.getElementById("currentBid").innerText = currentBid;
+    document.getElementById("currentTeam").innerText = team;
+}
+
+// UNDO
+function undoBid(){
+    if(history.length === 0) return;
+
+    const last = history.pop();
+    currentBid = last.bid;
+    updateDisplay(last.team);
+}
+
+// RESET
+function resetBid(){
+    currentBid = parseInt(document.getElementById("startBid").value);
+    history = [];
+    updateDisplay("---");
+}
+</script>
+
+</body>
+</html>
+
