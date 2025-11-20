@@ -517,7 +517,11 @@ function placeBid(teamNum){
       max: teamMax,
       attempted: nextValue
     }).catch(e=>console.error('rejection write err',e));
-    document.getElementById('rejectionNote').innerText = `Bid rejected for Team ${teamNum} — max ${teamMax}`;
+    const rejectedTeamName = document.getElementById("t" + teamNum).value || ("Team " + teamNum);
+
+document.getElementById('rejectionNote').innerText =
+    `Bid rejected for ${rejectedTeamName} — max ${teamMax}`;
+
     setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 7000);
     return;
   }
