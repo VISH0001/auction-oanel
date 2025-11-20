@@ -15,131 +15,39 @@ body{
 }
 
 /* Top controls */
-.top-panel{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  justify-content:center;
-  padding:18px;
-  align-items:center;
-}
-.control-box{
-  padding:10px 12px;
-  border-radius:10px;
-  background:rgba(0,20,35,0.6);
-  border:1px solid rgba(0,240,255,0.12);
-}
-.control-box label{
-  color:var(--neon2);
-  font-size:13px;
-  display:block;
-  margin-bottom:6px;
-}
-.control-box input{
-  width:120px;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid rgba(0,240,255,0.12);
-  background:#00121c;
-  color:var(--neon);
-}
+.top-panel{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; padding:18px; align-items:center; }
+.control-box{ padding:10px 12px; border-radius:10px; background:rgba(0,20,35,0.6); border:1px solid rgba(0,240,255,0.12); }
+.control-box label{ color:var(--neon2); font-size:13px; display:block; margin-bottom:6px; }
+.control-box input{ width:120px; padding:6px; border-radius:6px; border:1px solid rgba(0,240,255,0.12); background:#00121c; color:var(--neon); }
 
 /* Buttons */
-.button{
-  padding:10px 14px;
-  border-radius:8px;
-  border:0;
-  background:var(--neon);
-  color:#00131b;
-  font-weight:700;
-  cursor:pointer;
-}
+.button{ padding:10px 14px; border-radius:8px; border:0; background:var(--neon); color:#00131b; font-weight:700; cursor:pointer; }
 
 /* Display */
-.display{
-  margin:18px auto;
-  width:92%;
-  max-width:760px;
-  background:#00111a;
-  padding:28px;
-  border-radius:14px;
-  text-align:center;
-  border:1px solid rgba(0,240,255,0.3);
-  box-shadow:
-      0 0 20px rgba(0,240,255,0.4),
-      0 0 40px rgba(0,240,255,0.3),
-      0 0 60px rgba(0,240,255,0.2);
-    margin-bottom: 40px;
-
-}
-.big-bid{
-  font-size:72px;
-  font-weight:800;
-  color:var(--neon);
-  text-shadow:
-      0 0 10px var(--neon),
-      0 0 20px var(--neon),
-      0 0 40px var(--neon),
-      0 0 60px var(--neon);
-}
-.team-label{
-  font-size:30px;
-  color:var(--neon2);
-  margin-top:6px;
-}
+.display{ margin:18px auto; width:92%; max-width:760px; background:#00111a; padding:28px; border-radius:14px; text-align:center; border:1px solid rgba(0,240,255,0.3);
+  box-shadow:0 0 20px rgba(0,240,255,0.4),0 0 40px rgba(0,240,255,0.3),0 0 60px rgba(0,240,255,0.2); margin-bottom:40px; }
+.big-bid{ font-size:72px; font-weight:800; color:var(--neon);
+  text-shadow:0 0 10px var(--neon),0 0 20px var(--neon),0 0 40px var(--neon),0 0 60px var(--neon); }
+.team-label{ font-size:30px; color:var(--neon2); margin-top:6px; }
+.max-label{ font-size:14px; color:#9ffcff; margin-top:6px; }
 
 /* Team grid */
-.team-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  width:92%;
-  max-width:880px;
-  margin:20px auto;
-}
-.team-cell{
-  background:#001621;
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-  border:1px solid rgba(0,240,255,0.08);
-}
-.team-cell input{
-  width:100%;
-  padding:8px;
-  background:#00121c;
-  border-radius:8px;
-  color:var(--neon);
-  border:1px solid rgba(0,240,255,0.08);
-}
+.team-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:92%; max-width:880px; margin:20px auto; }
+.team-cell{ background:#001621; padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(0,240,255,0.08); }
+.team-cell input{ width:100%; padding:8px; background:#00121c; border-radius:8px; color:var(--neon); border:1px solid rgba(0,240,255,0.08); }
 
 /* Increment rules table */
-.rules {
-  width:92%;
-  max-width:880px;
-  margin:12px auto;
-  background:#01121a;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid rgba(0,240,255,0.06);
-}
-.rules .row{
-  display:flex;
-  gap:8px;
-  margin-bottom:8px;
-  align-items:center;
-}
-.rules label{ width:70px; color:var(--neon2); font-size:13px; }
+.rules { width:92%; max-width:880px; margin:12px auto; background:#01121a; padding:12px; border-radius:10px; border:1px solid rgba(0,240,255,0.06); }
+.rules .row{ display:flex; gap:8px; margin-bottom:8px; align-items:center; }
 .rules input{ padding:8px; border-radius:6px; border:1px solid rgba(0,240,255,0.08); background:#00121c; color:var(--neon); width:100%; }
 
 /* Undo / Reset area */
-.undo-reset{
-  text-align:center;
-  padding:18px;
-}
-
+.undo-reset{ text-align:center; padding:18px; }
 .small{ font-size:12px; color:#9ffcff; }
 .footer-note{ text-align:center; color:#9ffcff; margin-bottom:12px; }
+
+/* rejection message */
+.rejection{ color:#ff9b9b; font-weight:700; margin-top:6px; }
 </style>
 </head>
 
@@ -165,6 +73,8 @@ body{
   <div style="font-size:18px; color:#9ffcff; margin-bottom:8px;">CURRENT BID</div>
   <div class="big-bid" id="currentBid">100</div>
   <div class="team-label" id="currentTeam">---</div>
+  <div class="max-label" id="currentMax">Max: —</div>
+  <div id="rejectionNote" class="rejection"></div>
 </div>
 
 <div class="footer-note">Edit team names and increment rules below — changes sync to owners instantly.</div>
@@ -255,6 +165,8 @@ const defaultTeams = {1:"Team A",2:"Team B",3:"Team C",4:"Team D",5:"Team E",6:"
 // ensure initial DB nodes
 db.ref('teams').once('value').then(snap=>{ if(!snap.exists()) db.ref('teams').set(defaultTeams); });
 db.ref('ownerKeys').once('value').then(snap=>{ if(!snap.exists()) db.ref('ownerKeys').set(ownerKeys); });
+
+// default increments if absent
 db.ref('increments').once('value').then(snap=>{
   if(!snap.exists()){
     const defaults = [
@@ -301,7 +213,6 @@ teamGrid.addEventListener('input', e=>{
 });
 
 /* ---------- INCREMENT RULES UI ---------- */
-// populate rules from firebase
 function loadRulesToForm(rules){
   if(!rules || !rules.length) return;
   for(let i=0;i<5;i++){
@@ -316,7 +227,6 @@ db.ref('increments').on('value', snap=>{
   if(val) loadRulesToForm(val);
 });
 
-// save rules function
 function saveRules(){
   const arr = [];
   for(let i=1;i<=5;i++){
@@ -325,7 +235,6 @@ function saveRules(){
     const inc  = parseFloat(document.getElementById(`r${i}_inc`).value);
     arr.push({from: isNaN(from)?0:from, to: isNaN(to)?0:to, inc: isNaN(inc)?0:inc});
   }
-  // sort by from
   arr.sort((a,b)=> a.from - b.from);
   db.ref('increments').set(arr).then(()=>{ alert('Rules saved'); }).catch(err=>{ console.error(err); alert('Save failed'); });
 }
@@ -336,6 +245,7 @@ let fallbackInc = parseInt(document.getElementById('fallbackInc').value,10) || 1
 let history = [];
 let lastBidTeam = null;   // team number of last accepted bid
 let increments = [];      // array of rules from firebase
+let maxBids = {};         // will be populated from Google Sheets and firebase
 
 // load increments into memory for quick lookup
 db.ref('increments').on('value', snap=>{
@@ -343,7 +253,69 @@ db.ref('increments').on('value', snap=>{
   increments.sort((a,b)=> (a.from||0) - (b.from||0));
 });
 
-// helper: get increment for a given currentBid value (TO is inclusive now)
+// keep maxBids mirrored in firebase for owners to read
+db.ref('maxBids').on('value', snap=>{
+  maxBids = snap.val() || {};
+  updateCurrentMaxDisplay();
+});
+
+/* ---------- Google Sheets polling ---------- */
+const SHEET_ID = "1-1glQa5EjXTJg7MHYuhh1sRNaLTFfQZvlmVLnUE_HYc";
+// range B27:I27 (B=team1 ... I=team8)
+const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=B27:I27`;
+function fetchSheetOnce(){
+  fetch(GVIZ_URL)
+    .then(r=>r.text())
+    .then(txt=>{
+      // strip the prefix `/*O_o*/google.visualization.Query.setResponse(...);`
+      const jsonText = txt.replace(/^[^\(]*\(/,'').replace(/\);?$/,'');
+      const obj = JSON.parse(jsonText);
+      const rows = obj.table && obj.table.rows && obj.table.rows[0] && obj.table.rows[0].c;
+      if(!rows) return;
+      // c is array of cells corresponding to B..I
+      const newMax = {};
+      for(let i=0;i<8;i++){
+        const cell = rows[i];
+        let val = null;
+        if(cell && cell.v !== null && cell.v !== undefined) val = Number(cell.v);
+        if(val === null || isNaN(val)) val = 0;
+        newMax[String(i+1)] = val;
+      }
+      maxBids = newMax;
+      // update firebase so owners auto-see new values
+      db.ref('maxBids').set(maxBids).catch(e=>console.error('maxBids write err',e));
+      updateCurrentMaxDisplay();
+    })
+    .catch(err=>{
+      console.warn('sheet fetch failed',err);
+    });
+}
+// fetch first time and then every 10s
+fetchSheetOnce();
+setInterval(fetchSheetOnce, 10000);
+
+/* ---------- helpers ---------- */
+function updateCurrentMaxDisplay(){
+  // show current team's max on main display
+  const currTeamText = document.getElementById('currentTeam').innerText;
+  // try match team name to number via teams list
+  db.ref('teams').once('value').then(snap=>{
+    const teams = snap.val() || {};
+    let teamNumber = null;
+    for(const k in teams){
+      if(teams[k] === currTeamText){ teamNumber = k; break; }
+    }
+    // fallback: if current team name is '---' or not found, leave blank
+    if(!teamNumber){
+      // if lastBidTeam set, prefer that
+      if(lastBidTeam) teamNumber = String(lastBidTeam);
+    }
+    const maxText = (teamNumber && maxBids[teamNumber]) ? maxBids[teamNumber] : '—';
+    document.getElementById('currentMax').innerText = 'Max: ' + maxText;
+  });
+}
+
+// helper to get increment for a bidValue (TO inclusive)
 function getIncrementFor(bidValue){
   if(!increments || increments.length === 0) return fallbackInc;
   for(let i=0;i<increments.length;i++){
@@ -358,7 +330,7 @@ function getIncrementFor(bidValue){
   return (last && Number(last.inc)) ? Number(last.inc) : fallbackInc;
 }
 
-// update owners with liveDisplay
+// update owners liveDisplay
 function updateOwners(){
   db.ref('liveDisplay').set({
     currentBid: currentBid,
@@ -367,7 +339,7 @@ function updateOwners(){
   }).catch(err=> console.error('updateOwners err', err));
 }
 
-// apply settings
+/* ---------- Bid flow with max enforcement ---------- */
 function applySettings(){
   const newStart = parseInt(document.getElementById('startBid').value,10);
   const newFallback = parseInt(document.getElementById('fallbackInc').value,10);
@@ -375,27 +347,61 @@ function applySettings(){
   if(!Number.isNaN(newFallback)) fallbackInc = newFallback;
   lastBidTeam = null;
   history = [];
+  document.getElementById('rejectionNote').innerText = '';
   updateDisplay('---');
   updateOwners();
 }
 
-// update display helper
 function updateDisplay(team){
   document.getElementById('currentBid').innerText = currentBid;
   document.getElementById('currentTeam').innerText = team;
+  updateCurrentMaxDisplay();
 }
 
-// placeBid: with first-bid special rule
+// compute next bid amount if teamNum attempts to bid (does not change state)
+function computeNextBidAmountIf(teamNum){
+  const isFirstAccepted = (history.length === 0);
+  if(isFirstAccepted){
+    // first accepted bid uses currentBid
+    return currentBid;
+  }
+  const inc = getIncrementFor(currentBid);
+  return Number(currentBid) + Number(inc);
+}
+
+// placeBid with max check
 function placeBid(teamNum){
+  // check repeated bidder
   if(lastBidTeam === teamNum){
     console.log('Ignored: same team cannot bid twice in a row');
     return;
   }
 
-  const isFirstAccepted = (history.length === 0);
+  // find max for this team
+  const teamMax = Number(maxBids[String(teamNum)] || 0);
 
+  // compute what the resulting bid would be
+  const nextValue = computeNextBidAmountIf(teamNum);
+
+  // If nextValue > teamMax AND teamMax > 0, reject
+  if(teamMax > 0 && nextValue > teamMax){
+    // write rejection to firebase so owner sees it
+    db.ref('rejections/' + String(teamNum)).set({
+      time: Date.now(),
+      reason: 'exceeds_max',
+      max: teamMax,
+      attempted: nextValue
+    }).catch(e=>console.error('rejection write err',e));
+    // also show the max in admin panel briefly
+    document.getElementById('rejectionNote').innerText = `Bid rejected for Team ${teamNum} — max ${teamMax}`;
+    setTimeout(()=> document.getElementById('rejectionNote').innerText = '', 7000);
+    return;
+  }
+
+  // accept bid
+  // treat first accepted bid special (no increment)
+  const isFirstAccepted = (history.length === 0);
   if(isFirstAccepted){
-    // first accepted bid uses currentBid as-is
     lastBidTeam = teamNum;
     history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
     const teamName = document.getElementById('t'+teamNum).value || ('Team '+teamNum);
@@ -404,6 +410,7 @@ function placeBid(teamNum){
     return;
   }
 
+  // normal increment
   const inc = getIncrementFor(currentBid);
   lastBidTeam = teamNum;
   history.push({ bid: currentBid, team: document.getElementById('currentTeam').innerText });
@@ -413,7 +420,7 @@ function placeBid(teamNum){
   updateOwners();
 }
 
-// Undo
+// Undo/Reset as before
 function undoBid(){
   if(history.length === 0) return;
   const last = history.pop();
@@ -422,18 +429,17 @@ function undoBid(){
   updateDisplay(last.team);
   updateOwners();
 }
-
-// Reset
 function resetBid(){
   const newStart = parseInt(document.getElementById('startBid').value,10);
   currentBid = (!Number.isNaN(newStart)) ? newStart : currentBid;
   history = [];
   lastBidTeam = null;
+  document.getElementById('rejectionNote').innerText = '';
   updateDisplay('---');
   updateOwners();
 }
 
-// keyboard admin bidding: 1..8
+/* ---------- keyboard admin bidding & owner-triggered bids ---------- */
 document.addEventListener('keydown', e=>{
   if(e.key >= '1' && e.key <= '8'){
     placeBid(parseInt(e.key,10));
@@ -452,7 +458,7 @@ db.ref('latestBid').on('value', snap=>{
   placeBid(tnum);
 });
 
-// initial sync
+// initial
 window.addEventListener('load', ()=>{
   updateDisplay('---');
   updateOwners();
