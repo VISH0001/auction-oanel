@@ -37,13 +37,12 @@
     }
 
     .card {
-        width: 50%;
+        width: 70%;
         margin: 60px auto;
         padding: 50px;
         background: rgba(0, 25, 40, 0.7);
         border-radius: 30px;
         box-shadow: 0 0 55px #00eaff;
-        text-align: center;
         animation: pulseGlow 4s infinite ease-in-out alternate;
     }
 
@@ -52,18 +51,25 @@
         100% { box-shadow: 0 0 75px #00eaff; }
     }
 
+    /* ----------- NEW SIDE-BY-SIDE LAYOUT ------------ */
+    .content-box {
+        display: flex;
+        gap: 50px;
+        align-items: center;
+        justify-content: center;
+    }
+
     .photo-box {
-        width: 520px;
-        height: 650px;
+        width: 420px;
+        height: 550px;
         border-radius: 20px;
         border: 3px solid #00eaff;
         box-shadow: 0 0 35px #00eaff;
         background: #000;
-        margin: 0 auto;
+        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
         animation: photoGlow 6s infinite alternate ease-in-out;
     }
 
@@ -76,21 +82,39 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
-        animation: zoomIn 1.2s ease-out forwards;
-        opacity: 0;
+        opacity: 1;
     }
 
-    @keyframes zoomIn {
-        from { transform: scale(0.85); opacity: 0; }
-        to   { transform: scale(1); opacity: 1; }
+    /* Details on right side */
+    .details {
+        text-align: left;
+        max-width: 400px;
     }
 
-    .details { margin-top: 30px; text-align: center; }
-    .details .name { font-size: 70px; font-weight: bold; color: #b6ffff; text-shadow: 0 0 25px #00eaff; }
-    .details .role { margin-top: 15px; font-size: 50px; color: #8df7ff; text-shadow: 0 0 18px #00eaff; }
+    .details .name {
+        font-size: 55px;
+        font-weight: bold;
+        color: #b6ffff;
+        text-shadow: 0 0 25px #00eaff;
+    }
 
-    .details .extra { margin-top: 25px; font-size: 32px; color:#b6faff; }
-    .details .unavail { margin-top: 10px; font-size: 30px; color:#ff9a9a; }
+    .details .role {
+        font-size: 40px;
+        margin-top: 10px;
+        color: #8df7ff;
+    }
+
+    .details .extra {
+        margin-top: 18px;
+        font-size: 28px;
+        color:#b6faff;
+    }
+
+    .details .unavail {
+        margin-top: 10px;
+        font-size: 26px;
+        color:#ff9a9a;
+    }
 </style>
 
 </head>
@@ -101,17 +125,19 @@
 </div>
 
 <div class="card">
-    <div class="photo-box">
-        <img id="playerPhoto" src="">
-    </div>
+    <div class="content-box">
 
-    <div class="details">
-        <div class="name" id="playerName"></div>
-        <div class="role" id="playerRole"></div>
+        <div class="photo-box">
+            <img id="playerPhoto" src="">
+        </div>
 
-        <!-- New fields -->
-        <div class="extra" id="playerExtra"></div>
-        <div class="unavail" id="playerUnavail"></div>
+        <div class="details">
+            <div class="name" id="playerName"></div>
+            <div class="role" id="playerRole"></div>
+            <div class="extra" id="playerExtra"></div>
+            <div class="unavail" id="playerUnavail"></div>
+        </div>
+
     </div>
 </div>
 
@@ -155,14 +181,12 @@ function loadPlayer() {
 
             document.getElementById("playerName").textContent = name;
             document.getElementById("playerRole").textContent = role;
-
             document.getElementById("playerExtra").textContent = `${col4}, ${col5}`;
             document.getElementById("playerUnavail").textContent = `Unavailability - ${unavail}`;
 
             const img = document.getElementById("playerPhoto");
             const links = cleanLink(photoRaw);
             let attempt = 0;
-
             function tryLoad() {
                 if (attempt >= links.length) return;
                 img.src = links[attempt];
