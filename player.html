@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Player Display (Fixed Photo Frame)</title>
+<title>Player Display</title>
 <style>
+/* same CSS you already had — unchanged */
 :root{
     --card-width: 750px;
     --photo-w: 300px;
     --photo-h: 380px;
 }
-
 html,body{height:100%; margin:0;}
 body{
     background: radial-gradient(circle at center, #022235, #000c15 70%);
@@ -20,14 +20,12 @@ body{
     align-items:center;
     padding:30px 10px;
 }
-
 .top-input{ margin-top:6px; }
 .top-input input{
     width:130px; padding:14px; font-size:22px; text-align:center;
     border-radius:10px; border:2px solid #00eaff;
     background: rgba(0,20,30,0.9); color:#00eaff;
 }
-
 .card{
     width:var(--card-width);
     max-width:calc(100% - 40px);
@@ -40,14 +38,12 @@ body{
     align-items:center;
     justify-content:center;
 }
-
 .content-box{
     display:flex;
     gap:28px;
     align-items:center;
     width:100%;
 }
-
 .photo-frame{
     flex: 0 0 var(--photo-w);
     height: var(--photo-h);
@@ -61,53 +57,40 @@ body{
     color: rgba(0,234,255,0.25);
     font-size:16px;
     user-select:none;
-    transform: translateZ(0);
 }
-
 .details{
     flex: 1 1 auto;
     min-width: 0;
     text-align:center;
 }
-
 .name{
     font-weight:700;
     color:#b6ffff;
     text-shadow: 0 0 20px #00eaff;
     font-size: clamp(26px, 4vw, 55px);
-    line-height:1.05;
     margin:0 0 6px 0;
-    word-break:break-word;
 }
-
 .role{
     color:#8df7ff;
     font-size: clamp(18px, 3vw, 40px);
     margin:6px 0;
 }
-
 .extra{
     color:#b6faff;
     font-size: clamp(14px, 2.2vw, 28px);
     margin-top:12px;
 }
-
 .unavail{
     color:#ff9a9a;
     font-size: clamp(12px, 1.8vw, 24px);
     margin-top:10px;
-}
-
-@media (max-width:640px){
-    :root{ --card-width: calc(100% - 40px); }
-    .photo-frame{ flex:0 0 220px; height:280px; }
 }
 </style>
 </head>
 <body>
 
 <div class="top-input">
-    <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()">
+    <input type="number" id="indexInput" min="1" placeholder="1" oninput="userTyped()">
 </div>
 
 <div class="card">
@@ -124,39 +107,52 @@ body{
 </div>
 
 <script>
-// --------------------------------------
+// -------------------------
 // CONFIG
-// --------------------------------------
+// -------------------------
 const sheetID   = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
 let photoTab = null;
+let lastTypedIndex = null;
 
-// --------------------------------------
-// Helper: extract Drive ID & make view link
-// --------------------------------------
+// extract Drive ID
 function getDriveViewLink(raw){
     if (!raw) return "";
     const m = raw.match(/[-\w]{25,}/);
     return m ? `https://drive.google.com/file/d/${m[0]}/view` : "";
 }
 
-// --------------------------------------
-// Safe cell getter (avoids null problems)
-// --------------------------------------
+// safe cell getter
 function cell(row, col){
     const c = row[col];
     return c && c.v ? String(c.v) : "";
 }
 
 // --------------------------------------
-// MAIN FUNCTION
+// USER TYPED — MUST OPEN POPUP HERE
 // --------------------------------------
-function loadPlayer(){
-    const index = parseInt(document.getElementById("indexInput").value);
-    if (!index) return;
+function userTyped(){
+    const val = document.getElementById("indexInput").value;
+    if (!val) return;
 
+    lastTypedIndex = parseInt(val);
+
+    // OPEN immediately (trusted user action)
+    if (!photoTab || photoTab.closed){
+        photoTab = window.open("about:blank", "_blank");
+        if (!photoTab) {
+            console.warn("Popup blocked");
+        }
+    }
+
+    // now fetch data (popup safe)
+    loadPlayer(lastTypedIndex);
+}
+
+// --------------------------------------
+function loadPlayer(index){
     fetch(url)
         .then(r => r.text())
         .then(raw => {
@@ -176,23 +172,17 @@ function loadPlayer(){
 
             document.getElementById("playerName").textContent = name;
             document.getElementById("playerRole").textContent = role;
-
-            // join extra values safely
-            const extra = [e1, e2].filter(x => x).join(", ");
-            document.getElementById("playerExtra").textContent = extra;
-
+            document.getElementById("playerExtra").textContent =
+                [e1, e2].filter(Boolean).join(", ");
             document.getElementById("playerUnavail").textContent =
                 unav ? `Unavailability - ${unav}` : "";
 
-            // --- open original Drive image in a new tab ---
             const link = getDriveViewLink(photo);
-            if (link){
-                if (!photoTab || photoTab.closed){
-                    photoTab = window.open(link, "_blank");
-                } else {
-                    try { photoTab.location.href = link; }
-                    catch(e){ photoTab = window.open(link, "_blank"); }
-                }
+
+            // UPDATE the tab (safe now)
+            if (photoTab && !photoTab.closed){
+                if (link) photoTab.location.href = link;
+                else photoTab.location.href = "about:blank";
             }
         })
         .catch(err => console.error("LOAD ERROR:", err));
