@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CrichHeroes Stats Tool</title>
+<style>
+    body { font-family: Arial; padding: 20px; }
+    input { width: 80%; padding: 10px; font-size: 16px; }
+    button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h2>CrichHeroes Batting / Bowling Link Tool</h2>
+
+<p>Paste CrichHeroes Stats URL:</p>
+
+<input id="url" placeholder="https://cricheroes.com/player-profile/.../stats" />
+
+<br><br>
+
+<button onclick="openBatting()">Open Batting</button>
+<button onclick="openBowling()">Open Bowling</button>
+
+<script>
+// Opens the page normally (batting is default tab)
+function openBatting() {
+    let url = document.getElementById("url").value.trim();
+    if (!url) return alert("Enter a URL");
+    window.open(url, "_blank");
+}
+
+// Opens with #bowling tag → JS inside browser auto-clicks tab
+function openBowling() {
+    let url = document.getElementById("url").value.trim();
+    if (!url) return alert("Enter a URL");
+    window.open(url + "#bowling", "_blank");
+}
+
+// Auto-switch bowling tab when URL ends with #bowling
+if (location.hash === "#bowling") {
+    setTimeout(() => {
+        let btn = document.querySelector('button[data-rb-event-key="bowling"]')
+        if (btn) btn.click();
+    }, 1200);
+}
+</script>
+
+</body>
+</html>
