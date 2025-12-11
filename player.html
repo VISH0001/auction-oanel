@@ -53,40 +53,14 @@
 
     .content-box {
         display: flex;
-        gap: 50px;
         align-items: center;
         justify-content: center;
-    }
-
-    .photo-box {
-        width: 420px;
-        height: 550px;
-        border-radius: 20px;
-        border: 3px solid #00eaff;
-        box-shadow: 0 0 35px #00eaff;
-        background: #000;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: photoGlow 6s infinite alternate ease-in-out;
-    }
-
-    @keyframes photoGlow {
-        0% { box-shadow: 0 0 25px #00eaffaa; }
-        100% { box-shadow: 0 0 55px #00eaff; }
-    }
-
-    .photo-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        opacity: 1;
+        text-align: center;
     }
 
     .details {
-        text-align: left;
-        max-width: 400px;
+        text-align: center;
+        max-width: 500px;
     }
 
     .details .name {
@@ -125,10 +99,7 @@
 <div class="card">
     <div class="content-box">
 
-        <div class="photo-box">
-            <!-- Image is no longer loaded here -->
-            <img id="playerPhoto" src="">
-        </div>
+        <!-- PHOTO BOX REMOVED COMPLETELY -->
 
         <div class="details">
             <div class="name" id="playerName"></div>
@@ -145,15 +116,14 @@ const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-let photoTab = null;   // single tab reference for OBS
+let photoTab = null;   // keep one tab for photos
 
-// Returns original-quality Google Drive VIEW link
+// Extract Drive "view" link
 function getDriveViewLink(raw) {
     if (!raw) return "";
     const match = raw.match(/[-\w]{25,}/);
     if (!match) return "";
-    const id = match[0];
-    return `https://drive.google.com/file/d/${id}/view`;
+    return `https://drive.google.com/file/d/${match[0]}/view`;
 }
 
 function loadPlayer() {
@@ -181,15 +151,13 @@ function loadPlayer() {
             document.getElementById("playerExtra").textContent = `${col4}, ${col5}`;
             document.getElementById("playerUnavail").textContent = `Unavailability - ${unavail}`;
 
-            // Full quality drive link
             const fullLink = getDriveViewLink(photoRaw);
             if (!fullLink) return;
 
-            // First time: open new tab
+            // open or update separate photo tab
             if (!photoTab || photoTab.closed) {
                 photoTab = window.open(fullLink, "_blank");
             } else {
-                // Update old tab for OBS
                 photoTab.location.href = fullLink;
             }
         });
