@@ -9,8 +9,6 @@
     --photo-w: 300px;
     --photo-h: 380px;
 }
-
-/* Page */
 html,body{height:100%; margin:0;}
 body{
     background: radial-gradient(circle at center, #022235, #000c15 70%);
@@ -21,16 +19,12 @@ body{
     align-items:center;
     padding:30px 10px;
 }
-
-/* Input */
 .top-input{ margin-top:6px; }
 .top-input input{
     width:130px; padding:14px; font-size:22px; text-align:center;
     border-radius:10px; border:2px solid #00eaff;
     background: rgba(0,20,30,0.9); color:#00eaff;
 }
-
-/* Card */
 .card{
     width:var(--card-width);
     max-width:calc(100% - 40px);
@@ -40,21 +34,17 @@ body{
     border-radius:18px;
     box-shadow: 0 0 40px #00eaff;
     display:flex;
-    align-items:center;           /* centers photo-frame vertically regardless of text height */
+    align-items:center;
     justify-content:center;
 }
-
-/* Inner layout */
 .content-box{
     display:flex;
     gap:28px;
     align-items:center;
     width:100%;
 }
-
-/* FIXED photo frame: does NOT grow or shrink */
 .photo-frame{
-    flex: 0 0 var(--photo-w);      /* fixed width */
+    flex: 0 0 var(--photo-w);
     height: var(--photo-h);
     border-radius:14px;
     border:3px solid #00eaff;
@@ -66,18 +56,9 @@ body{
     color: rgba(0,234,255,0.25);
     font-size:16px;
     user-select:none;
-    /* ensure it's pixel-stable for OBS cropping */
     transform: translateZ(0);
 }
-
-/* Details take the remaining space */
-.details{
-    flex: 1 1 auto;
-    min-width: 0; /* important so flex children can shrink and wrap */
-    text-align:center;
-}
-
-/* Auto-resizing text that wraps instead of expanding layout */
+.details{ flex: 1 1 auto; min-width: 0; text-align:center; }
 .name{
     font-weight:700;
     color:#b6ffff;
@@ -88,29 +69,24 @@ body{
     word-break:break-word;
     hyphens:auto;
 }
-
 .role{
     color:#8df7ff;
     font-size: clamp(18px, 3vw, 40px);
     margin:6px 0;
     word-break:break-word;
 }
-
 .extra{
     color:#b6faff;
     font-size: clamp(14px, 2.2vw, 28px);
     margin-top:12px;
     word-break:break-word;
 }
-
 .unavail{
     color:#ff9a9a;
     font-size: clamp(12px, 1.8vw, 24px);
     margin-top:10px;
     word-break:break-word;
 }
-
-/* small screens */
 @media (max-width:640px){
     :root{ --card-width: calc(100% - 40px); }
     .photo-frame{ flex:0 0 220px; height:280px; }
@@ -125,18 +101,14 @@ body{
 
 <div class="card" aria-role="region">
     <div class="content-box">
-
-        <!-- Fixed, stable photo frame for OBS cropping -->
         <div class="photo-frame" id="photoFrame">PHOTO</div>
 
-        <!-- Details -->
         <div class="details">
             <div class="name" id="playerName"></div>
             <div class="role" id="playerRole"></div>
             <div class="extra" id="playerExtra"></div>
             <div class="unavail" id="playerUnavail"></div>
         </div>
-
     </div>
 </div>
 
@@ -146,8 +118,8 @@ const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
 let photoTab = null;
-let battingTab = null;
-let lastOpenedStatsBase = ""; // baseKey of currently opened stats (no duplicates)
+let statsBatTab = null;     // NEW — persistent batting tab
+let statsBowlTab = null;    // NEW — persistent bowling tab
 
 function getDriveViewLink(raw){
     if (!raw) return "";
@@ -155,46 +127,6 @@ function getDriveViewLink(raw){
     return m ? `https://drive.google.com/file/d/${m[0]}/view` : "";
 }
 
-function deriveStatsUrl(rawFromG){
-    // Normalize: if raw already contains /stats just use it.
-    if (!rawFromG) return "";
-    rawFromG = rawFromG.trim();
-    if (rawFromG.endsWith("/")) rawFromG = rawFromG.slice(0, -1);
-    if (rawFromG.includes("/stats")) {
-        return rawFromG;
-    }
-    // if just profile base, append /stats
-    if (rawFromG.startsWith("https://cricheroes.com/player-profile/")) {
-        return rawFromG + "/stats";
-    }
-    // fallback: return raw
-    return rawFromG;
-}
-
-function openOrReuseTab(urlToOpen, reuseTabRef, makeActive=true) {
-    // returns a window reference or null (for cross-origin windows this is best-effort)
-    try {
-        if (!reuseTabRef || reuseTabRef.closed) {
-            // open new
-            return window.open(urlToOpen, "_blank");
-        } else {
-            // Try to reuse the existing tab
-            try {
-                reuseTabRef.location.href = urlToOpen;
-                if (makeActive) try { reuseTabRef.focus(); } catch(e){}
-                return reuseTabRef;
-            } catch (err) {
-                // If cross-origin prevents assignment, open new and replace ref
-                return window.open(urlToOpen, "_blank");
-            }
-        }
-    } catch (err) {
-        console.error("openOrReuseTab failed:", err);
-        try { return window.open(urlToOpen, "_blank"); } catch(e){ return null; }
-    }
-}
-
-// index -> read sheet -> do UI + open batting tab + reuse photo tab
 function loadPlayer(){
     const index = parseInt(document.getElementById("indexInput").value);
     if (!index) return;
@@ -203,46 +135,51 @@ function loadPlayer(){
         .then(r => r.text())
         .then(txt => {
             const json = JSON.parse(txt.substring(47, txt.length - 2));
-            const rows = json.table.rows || [];
+            const rows = json.table.rows;
             if (index < 1 || index > rows.length) return;
             const d = rows[index - 1].c || [];
 
             document.getElementById("playerName").textContent = d[0]?.v || "";
             document.getElementById("playerRole").textContent = d[1]?.v || "";
-            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
-            document.getElementById("playerUnavail").textContent = `Unavailability - ${d[5]?.v || ""}`;
+            document.getElementById("playerExtra").textContent =
+                `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
+            document.getElementById("playerUnavail").textContent =
+                `Unavailability - ${d[5]?.v || ""}`;
 
-            // open full-size photo in separate tab (unchanged)
+            // --- PHOTO logic stays identical ---
             const link = getDriveViewLink(d[2]?.v);
             if (link){
-                if (!photoTab || photoTab.closed) photoTab = window.open(link, "_blank");
-                else {
-                    try { photoTab.location.href = link; photoTab.focus(); }
+                if (!photoTab || photoTab.closed) {
+                    photoTab = window.open(link, "_blank");
+                } else {
+                    try { photoTab.location.href = link; }
                     catch(e){ photoTab = window.open(link, "_blank"); }
                 }
             }
 
-            // Now handle the stats link in column G (index 6 -> G column zero-based)
-            const rawStats = d[6]?.v || d[5]?.v || ""; // try G, fallback
-            const statsUrl = deriveStatsUrl(rawStats);
-            if (!statsUrl) return;
+            // --- NEW: Open STATS from column G ---
+            const statsURL = d[6]?.v || "";  // Column G
 
-            // compute baseKey (normalized without hash)
-            const baseKey = statsUrl.split("#")[0];
+            if (statsURL && statsURL.startsWith("http")) {
 
-            // If the batting tab is already showing the same baseKey, do nothing (prevents opening duplicates)
-            if (lastOpenedStatsBase === baseKey && battingTab && !battingTab.closed) {
-                // nothing to do — already open and extension will not create duplicate bowling tab
-                console.log("Stats already opened for this player — reusing batting tab");
-                // still try to focus it
-                try { battingTab.focus(); } catch(e){}
-                return;
+                // Open or update batting tab
+                if (!statsBatTab || statsBatTab.closed) {
+                    statsBatTab = window.open(statsURL, "_blank");
+                } else {
+                    try { statsBatTab.location.href = statsURL; }
+                    catch(e){ statsBatTab = window.open(statsURL, "_blank"); }
+                }
+
+                // Open or update bowling tab
+                const bowlURL = statsURL + "#bowling";
+
+                if (!statsBowlTab || statsBowlTab.closed) {
+                    statsBowlTab = window.open(bowlURL, "_blank");
+                } else {
+                    try { statsBowlTab.location.href = bowlURL; }
+                    catch(e){ statsBowlTab = window.open(bowlURL, "_blank"); }
+                }
             }
-
-            // Otherwise open/reuse batting tab and update lastOpenedStatsBase
-            battingTab = openOrReuseTab(statsUrl, battingTab, true);
-            lastOpenedStatsBase = baseKey;
-            // Note: extension background will detect this new tab and open a single bowling tab with "#bowling"
         })
         .catch(err => console.error("Load failed:", err));
 }
