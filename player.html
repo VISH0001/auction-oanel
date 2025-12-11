@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Player Display</title>
-
 <style>
+    :root{
+        --card-width: 900px; /* fixed width of main box (change as needed) */
+    }
+
+    html,body{
+        height:100%;
+        margin:0;
+    }
+
     body {
         margin: 0;
+        min-height:100%;
         background: radial-gradient(circle at center, #022235, #000c15 70%);
         font-family: Arial, sans-serif;
         color: #aefbff;
         overflow-x: hidden;
         animation: bgGlow 12s infinite alternate ease-in-out;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
     }
 
     @keyframes bgGlow {
@@ -22,6 +34,7 @@
     .top-input {
         margin-top: 40px;
         text-align: center;
+        z-index:2;
     }
 
     .top-input input {
@@ -37,13 +50,17 @@
     }
 
     .card {
-        width: 70%;
-        margin: 60px auto;
-        padding: 50px;
+        /* fixed width; will not expand beyond this. Keep max-width so it still works on small screens */
+        width: var(--card-width);
+        max-width: calc(100% - 40px);
+        margin: 40px auto;
+        padding: 48px 36px;
         background: rgba(0, 25, 40, 0.7);
-        border-radius: 30px;
+        border-radius: 22px;
         box-shadow: 0 0 55px #00eaff;
         animation: pulseGlow 4s infinite ease-in-out alternate;
+        display:flex;
+        justify-content:center;
     }
 
     @keyframes pulseGlow {
@@ -53,53 +70,67 @@
 
     .content-box {
         display: flex;
+        width:100%;
         align-items: center;
         justify-content: center;
-        text-align: center;
     }
 
     .details {
         text-align: center;
-        max-width: 500px;
+        width:100%;
     }
 
+    /* Use CSS variables for "nominal" font sizes — JS will override to shrink when needed */
     .details .name {
-        font-size: 55px;
+        --nominal: 55px;
+        font-size: var(--nominal);
         font-weight: bold;
         color: #b6ffff;
         text-shadow: 0 0 25px #00eaff;
+        line-height: 1.05;
+        margin-bottom:8px;
+        word-break:break-word;
     }
 
     .details .role {
-        font-size: 40px;
-        margin-top: 10px;
+        --nominal: 40px;
+        font-size: var(--nominal);
+        margin-top: 6px;
         color: #8df7ff;
+        line-height:1.05;
+        word-break:break-word;
     }
 
     .details .extra {
-        margin-top: 18px;
-        font-size: 28px;
+        --nominal: 28px;
+        margin-top: 12px;
+        font-size: var(--nominal);
         color:#b6faff;
+        word-break:break-word;
     }
 
     .details .unavail {
+        --nominal: 26px;
         margin-top: 10px;
-        font-size: 26px;
+        font-size: var(--nominal);
         color:#ff9a9a;
+        word-break:break-word;
+    }
+
+    /* Small screens fallback */
+    @media (max-width:520px){
+        :root{ --card-width: calc(100% - 40px); }
     }
 </style>
-
 </head>
 <body>
 
 <div class="top-input">
-    <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()">
+    <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()" />
 </div>
 
-<div class="card">
+<div class="card" id="mainCard">
     <div class="content-box">
-
-        <!-- PHOTO BOX REMOVED COMPLETELY -->
 
         <div class="details">
             <div class="name" id="playerName"></div>
@@ -112,13 +143,14 @@
 </div>
 
 <script>
+/* --- Spreadsheet config (unchanged) --- */
 const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-let photoTab = null;   // keep one tab for photos
+let photoTab = null;
 
-// Extract Drive "view" link
+/* Return Drive view link if possible */
 function getDriveViewLink(raw) {
     if (!raw) return "";
     const match = raw.match(/[-\w]{25,}/);
@@ -126,7 +158,53 @@ function getDriveViewLink(raw) {
     return `https://drive.google.com/file/d/${match[0]}/view`;
 }
 
-function loadPlayer() {
+/* Shrink-to-fit helper:
+   element - DOM node
+   startPx - starting font size in px
+   minPx   - minimum allowed font size in px
+   stepPx  - decrement step
+   condition: stop when element's scrollWidth fits into clientWidth (for single-line and multi-line),
+   and scrollHeight not larger than a comfortable limit (allowing wrapping).
+*/
+function shrinkToFit(element, startPx, minPx=12, stepPx=1) {
+    if (!element) return;
+    const computed = window.getComputedStyle(element);
+    // Force starting size (use px)
+    element.style.fontSize = startPx + "px";
+    // loop until it fits or reaches min
+    while (parseFloat(element.style.fontSize) > minPx) {
+        // small tolerance
+        const fitsWidth = element.scrollWidth - 1 <= element.clientWidth;
+        // allow multi-line; for very long single words use width as metric
+        const fitsHeight = element.scrollHeight <= element.clientHeight * 1.5 || element.clientHeight === 0;
+        if (fitsWidth && fitsHeight) break;
+        const curr = parseFloat(element.style.fontSize);
+        element.style.fontSize = Math.max(minPx, curr - stepPx) + "px";
+    }
+}
+
+/* After filling text, adjust sizes for name/role/extra/unavail */
+function adjustAllTextSizes(){
+    const name = document.getElementById("playerName");
+    const role = document.getElementById("playerRole");
+    const extra = document.getElementById("playerExtra");
+    const unavail = document.getElementById("playerUnavail");
+
+    // Get nominal sizes from CSS variables if present, fallback to defaults
+    const getNominal = (el, fallback)=> {
+        if (!el) return fallback;
+        const vv = getComputedStyle(el).getPropertyValue('--nominal').trim();
+        return vv? parseFloat(vv) : fallback;
+    };
+
+    shrinkToFit(name, getNominal(name,55), 20, 1);
+    shrinkToFit(role, getNominal(role,40), 16, 1);
+    shrinkToFit(extra, getNominal(extra,28), 12, 1);
+    shrinkToFit(unavail, getNominal(unavail,26), 12, 1);
+}
+
+/* Load player and then adjust sizes */
+function loadPlayer(){
     const index = parseInt(document.getElementById("indexInput").value);
     if (!index) return;
 
@@ -135,7 +213,6 @@ function loadPlayer() {
         .then(txt => {
             const json = JSON.parse(txt.substring(47, txt.length - 2));
             const rows = json.table.rows;
-
             if (index < 1 || index > rows.length) return;
             const data = rows[index - 1].c;
 
@@ -148,20 +225,30 @@ function loadPlayer() {
 
             document.getElementById("playerName").textContent = name;
             document.getElementById("playerRole").textContent = role;
-            document.getElementById("playerExtra").textContent = `${col4}, ${col5}`;
+            document.getElementById("playerExtra").textContent = `${col4}${col4 && col5 ? ', ' : ''}${col5}`;
             document.getElementById("playerUnavail").textContent = `Unavailability - ${unavail}`;
+
+            // adjust text sizes after DOM updated (a microtask wait to ensure layout)
+            requestAnimationFrame(adjustAllTextSizes);
 
             const fullLink = getDriveViewLink(photoRaw);
             if (!fullLink) return;
-
-            // open or update separate photo tab
             if (!photoTab || photoTab.closed) {
                 photoTab = window.open(fullLink, "_blank");
             } else {
-                photoTab.location.href = fullLink;
+                try { photoTab.location.href = fullLink; } catch(e) { photoTab = window.open(fullLink, "_blank"); }
             }
+        })
+        .catch(err => {
+            console.error("Failed to load sheet:", err);
         });
 }
+
+/* Optional: adjust when window resized so text fits new width */
+window.addEventListener('resize', () => {
+    // re-run shrink with current nominal sizes
+    requestAnimationFrame(adjustAllTextSizes);
+});
 </script>
 
 </body>
