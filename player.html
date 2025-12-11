@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Player Display</title>
+<title>Player Display (Fixed Photo Frame)</title>
 <style>
-/* same CSS you already had — unchanged */
 :root{
     --card-width: 750px;
     --photo-w: 300px;
     --photo-h: 380px;
 }
+
+/* Page */
 html,body{height:100%; margin:0;}
 body{
     background: radial-gradient(circle at center, #022235, #000c15 70%);
@@ -20,12 +21,16 @@ body{
     align-items:center;
     padding:30px 10px;
 }
+
+/* Input */
 .top-input{ margin-top:6px; }
 .top-input input{
     width:130px; padding:14px; font-size:22px; text-align:center;
     border-radius:10px; border:2px solid #00eaff;
     background: rgba(0,20,30,0.9); color:#00eaff;
 }
+
+/* Card */
 .card{
     width:var(--card-width);
     max-width:calc(100% - 40px);
@@ -35,17 +40,21 @@ body{
     border-radius:18px;
     box-shadow: 0 0 40px #00eaff;
     display:flex;
-    align-items:center;
+    align-items:center;           /* centers photo-frame vertically regardless of text height */
     justify-content:center;
 }
+
+/* Inner layout */
 .content-box{
     display:flex;
     gap:28px;
     align-items:center;
     width:100%;
 }
+
+/* FIXED photo frame: does NOT grow or shrink */
 .photo-frame{
-    flex: 0 0 var(--photo-w);
+    flex: 0 0 var(--photo-w);      /* fixed width */
     height: var(--photo-h);
     border-radius:14px;
     border:3px solid #00eaff;
@@ -57,135 +66,185 @@ body{
     color: rgba(0,234,255,0.25);
     font-size:16px;
     user-select:none;
+    /* ensure it's pixel-stable for OBS cropping */
+    transform: translateZ(0);
 }
+
+/* Details take the remaining space */
 .details{
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: 0; /* important so flex children can shrink and wrap */
     text-align:center;
 }
+
+/* Auto-resizing text that wraps instead of expanding layout */
 .name{
     font-weight:700;
     color:#b6ffff;
     text-shadow: 0 0 20px #00eaff;
     font-size: clamp(26px, 4vw, 55px);
+    line-height:1.05;
     margin:0 0 6px 0;
+    word-break:break-word;
+    hyphens:auto;
 }
+
 .role{
     color:#8df7ff;
     font-size: clamp(18px, 3vw, 40px);
     margin:6px 0;
+    word-break:break-word;
 }
+
 .extra{
     color:#b6faff;
     font-size: clamp(14px, 2.2vw, 28px);
     margin-top:12px;
+    word-break:break-word;
 }
+
 .unavail{
     color:#ff9a9a;
     font-size: clamp(12px, 1.8vw, 24px);
     margin-top:10px;
+    word-break:break-word;
+}
+
+/* small screens */
+@media (max-width:640px){
+    :root{ --card-width: calc(100% - 40px); }
+    .photo-frame{ flex:0 0 220px; height:280px; }
 }
 </style>
 </head>
 <body>
 
 <div class="top-input">
-    <input type="number" id="indexInput" min="1" placeholder="1" oninput="userTyped()">
+    <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()">
 </div>
 
-<div class="card">
+<div class="card" aria-role="region">
     <div class="content-box">
+
+        <!-- Fixed, stable photo frame for OBS cropping -->
         <div class="photo-frame" id="photoFrame">PHOTO</div>
 
+        <!-- Details -->
         <div class="details">
             <div class="name" id="playerName"></div>
             <div class="role" id="playerRole"></div>
             <div class="extra" id="playerExtra"></div>
             <div class="unavail" id="playerUnavail"></div>
         </div>
+
     </div>
 </div>
 
 <script>
-// -------------------------
-// CONFIG
-// -------------------------
-const sheetID   = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
+const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
 let photoTab = null;
-let lastTypedIndex = null;
+let battingTab = null;
+let lastOpenedStatsBase = ""; // baseKey of currently opened stats (no duplicates)
 
-// extract Drive ID
 function getDriveViewLink(raw){
     if (!raw) return "";
     const m = raw.match(/[-\w]{25,}/);
     return m ? `https://drive.google.com/file/d/${m[0]}/view` : "";
 }
 
-// safe cell getter
-function cell(row, col){
-    const c = row[col];
-    return c && c.v ? String(c.v) : "";
-}
-
-// --------------------------------------
-// USER TYPED — MUST OPEN POPUP HERE
-// --------------------------------------
-function userTyped(){
-    const val = document.getElementById("indexInput").value;
-    if (!val) return;
-
-    lastTypedIndex = parseInt(val);
-
-    // OPEN immediately (trusted user action)
-    if (!photoTab || photoTab.closed){
-        photoTab = window.open("about:blank", "_blank");
-        if (!photoTab) {
-            console.warn("Popup blocked");
-        }
+function deriveStatsUrl(rawFromG){
+    // Normalize: if raw already contains /stats just use it.
+    if (!rawFromG) return "";
+    rawFromG = rawFromG.trim();
+    if (rawFromG.endsWith("/")) rawFromG = rawFromG.slice(0, -1);
+    if (rawFromG.includes("/stats")) {
+        return rawFromG;
     }
-
-    // now fetch data (popup safe)
-    loadPlayer(lastTypedIndex);
+    // if just profile base, append /stats
+    if (rawFromG.startsWith("https://cricheroes.com/player-profile/")) {
+        return rawFromG + "/stats";
+    }
+    // fallback: return raw
+    return rawFromG;
 }
 
-// --------------------------------------
-function loadPlayer(index){
+function openOrReuseTab(urlToOpen, reuseTabRef, makeActive=true) {
+    // returns a window reference or null (for cross-origin windows this is best-effort)
+    try {
+        if (!reuseTabRef || reuseTabRef.closed) {
+            // open new
+            return window.open(urlToOpen, "_blank");
+        } else {
+            // Try to reuse the existing tab
+            try {
+                reuseTabRef.location.href = urlToOpen;
+                if (makeActive) try { reuseTabRef.focus(); } catch(e){}
+                return reuseTabRef;
+            } catch (err) {
+                // If cross-origin prevents assignment, open new and replace ref
+                return window.open(urlToOpen, "_blank");
+            }
+        }
+    } catch (err) {
+        console.error("openOrReuseTab failed:", err);
+        try { return window.open(urlToOpen, "_blank"); } catch(e){ return null; }
+    }
+}
+
+// index -> read sheet -> do UI + open batting tab + reuse photo tab
+function loadPlayer(){
+    const index = parseInt(document.getElementById("indexInput").value);
+    if (!index) return;
+
     fetch(url)
         .then(r => r.text())
-        .then(raw => {
-            const json = JSON.parse(raw.substring(47, raw.length - 2));
-            const rows = json.table.rows;
-
+        .then(txt => {
+            const json = JSON.parse(txt.substring(47, txt.length - 2));
+            const rows = json.table.rows || [];
             if (index < 1 || index > rows.length) return;
+            const d = rows[index - 1].c || [];
 
-            const row = rows[index - 1].c;
+            document.getElementById("playerName").textContent = d[0]?.v || "";
+            document.getElementById("playerRole").textContent = d[1]?.v || "";
+            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
+            document.getElementById("playerUnavail").textContent = `Unavailability - ${d[5]?.v || ""}`;
 
-            const name  = cell(row,0);
-            const role  = cell(row,1);
-            const photo = cell(row,2);
-            const e1    = cell(row,3);
-            const e2    = cell(row,4);
-            const unav  = cell(row,5);
-
-            document.getElementById("playerName").textContent = name;
-            document.getElementById("playerRole").textContent = role;
-            document.getElementById("playerExtra").textContent =
-                [e1, e2].filter(Boolean).join(", ");
-            document.getElementById("playerUnavail").textContent =
-                unav ? `Unavailability - ${unav}` : "";
-
-            const link = getDriveViewLink(photo);
-
-            // UPDATE the tab (safe now)
-            if (photoTab && !photoTab.closed){
-                if (link) photoTab.location.href = link;
-                else photoTab.location.href = "about:blank";
+            // open full-size photo in separate tab (unchanged)
+            const link = getDriveViewLink(d[2]?.v);
+            if (link){
+                if (!photoTab || photoTab.closed) photoTab = window.open(link, "_blank");
+                else {
+                    try { photoTab.location.href = link; photoTab.focus(); }
+                    catch(e){ photoTab = window.open(link, "_blank"); }
+                }
             }
+
+            // Now handle the stats link in column G (index 6 -> G column zero-based)
+            const rawStats = d[6]?.v || d[5]?.v || ""; // try G, fallback
+            const statsUrl = deriveStatsUrl(rawStats);
+            if (!statsUrl) return;
+
+            // compute baseKey (normalized without hash)
+            const baseKey = statsUrl.split("#")[0];
+
+            // If the batting tab is already showing the same baseKey, do nothing (prevents opening duplicates)
+            if (lastOpenedStatsBase === baseKey && battingTab && !battingTab.closed) {
+                // nothing to do — already open and extension will not create duplicate bowling tab
+                console.log("Stats already opened for this player — reusing batting tab");
+                // still try to focus it
+                try { battingTab.focus(); } catch(e){}
+                return;
+            }
+
+            // Otherwise open/reuse batting tab and update lastOpenedStatsBase
+            battingTab = openOrReuseTab(statsUrl, battingTab, true);
+            lastOpenedStatsBase = baseKey;
+            // Note: extension background will detect this new tab and open a single bowling tab with "#bowling"
         })
-        .catch(err => console.error("LOAD ERROR:", err));
+        .catch(err => console.error("Load failed:", err));
 }
 </script>
 
