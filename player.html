@@ -6,7 +6,7 @@
 
 <style>
 :root{
-    --card-width: 650px;  /* Reduced width */
+    --card-width: 750px;
 }
 
 body {
@@ -35,6 +35,7 @@ body {
     color: #00eaff;
 }
 
+/* MAIN CARD */
 .card {
     width: var(--card-width);
     max-width: calc(100% - 40px);
@@ -43,7 +44,30 @@ body {
     background: rgba(0, 25, 40, 0.7);
     border-radius: 25px;
     box-shadow: 0 0 40px #00eaff;
+}
+
+.content-box {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* GLOWING EMPTY PHOTO BOX */
+.photo-frame {
+    width: 300px;
+    height: 380px;
+    border-radius: 18px;
+    border: 3px solid #00eaff;
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 30px #00eaff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #00eaff66;
+    font-size: 20px;
     text-align: center;
+    user-select: none;
 }
 
 /* AUTO-RESIZING TEXT */
@@ -81,10 +105,21 @@ body {
 </div>
 
 <div class="card">
-    <div class="name" id="playerName"></div>
-    <div class="role" id="playerRole"></div>
-    <div class="extra" id="playerExtra"></div>
-    <div class="unavail" id="playerUnavail"></div>
+    <div class="content-box">
+
+        <!-- NEW GLOWING EMPTY BOX -->
+        <div class="photo-frame">
+            PHOTO
+        </div>
+
+        <div class="details">
+            <div class="name" id="playerName"></div>
+            <div class="role" id="playerRole"></div>
+            <div class="extra" id="playerExtra"></div>
+            <div class="unavail" id="playerUnavail"></div>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -115,7 +150,7 @@ function loadPlayer(){
 
             document.getElementById("playerName").textContent = d[0]?.v || "";
             document.getElementById("playerRole").textContent = d[1]?.v || "";
-            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""} ${d[4]?.v ? ", " + d[4].v : ""}`;
+            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
             document.getElementById("playerUnavail").textContent = `Unavailability - ${d[5]?.v || ""}`;
 
             const link = getDriveViewLink(d[2]?.v);
