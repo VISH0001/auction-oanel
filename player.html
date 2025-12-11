@@ -40,7 +40,7 @@ body{
     border-radius:18px;
     box-shadow: 0 0 40px #00eaff;
     display:flex;
-    align-items:center;           /* centers photo-frame vertically regardless of text height */
+    align-items:center;
     justify-content:center;
 }
 
@@ -52,9 +52,9 @@ body{
     width:100%;
 }
 
-/* FIXED photo frame: does NOT grow or shrink */
+/* FIXED photo frame */
 .photo-frame{
-    flex: 0 0 var(--photo-w);      /* fixed width */
+    flex: 0 0 var(--photo-w);
     height: var(--photo-h);
     border-radius:14px;
     border:3px solid #00eaff;
@@ -66,18 +66,16 @@ body{
     color: rgba(0,234,255,0.25);
     font-size:16px;
     user-select:none;
-    /* ensure it's pixel-stable for OBS cropping */
     transform: translateZ(0);
 }
 
-/* Details take the remaining space */
+/* Details */
 .details{
     flex: 1 1 auto;
-    min-width: 0; /* important so flex children can shrink and wrap */
+    min-width: 0;
     text-align:center;
 }
 
-/* Auto-resizing text that wraps instead of expanding layout */
 .name{
     font-weight:700;
     color:#b6ffff;
@@ -86,7 +84,6 @@ body{
     line-height:1.05;
     margin:0 0 6px 0;
     word-break:break-word;
-    hyphens:auto;
 }
 
 .role{
@@ -126,7 +123,7 @@ body{
 <div class="card" aria-role="region">
     <div class="content-box">
 
-        <!-- Fixed, stable photo frame for OBS cropping -->
+        <!-- Photo -->
         <div class="photo-frame" id="photoFrame">PHOTO</div>
 
         <!-- Details -->
@@ -162,15 +159,21 @@ function loadPlayer(){
         .then(txt => {
             const json = JSON.parse(txt.substring(47, txt.length - 2));
             const rows = json.table.rows;
-            if (index < 1 || index > rows.length) return;
-            const d = rows[index - 1].c || [];
+
+            /* FIX: skip header row so SR=1 → first data row */
+            const dataRows = rows.slice(1);
+
+            if (index < 1 || index > dataRows.length) return;
+
+            const d = dataRows[index - 1].c || [];
 
             document.getElementById("playerName").textContent = d[0]?.v || "";
             document.getElementById("playerRole").textContent = d[1]?.v || "";
-            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
-            document.getElementById("playerUnavail").textContent = `Unavailability - ${d[5]?.v || ""}`;
+            document.getElementById("playerExtra").textContent =
+                `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
+            document.getElementById("playerUnavail").textContent =
+                `Unavailability - ${d[5]?.v || ""}`;
 
-            // open full-size photo in separate tab (unchanged)
             const link = getDriveViewLink(d[2]?.v);
             if (link){
                 if (!photoTab || photoTab.closed) photoTab = window.open(link, "_blank");
