@@ -51,7 +51,6 @@
         100% { box-shadow: 0 0 75px #00eaff; }
     }
 
-    /* ----------- NEW SIDE-BY-SIDE LAYOUT ------------ */
     .content-box {
         display: flex;
         gap: 50px;
@@ -85,7 +84,6 @@
         opacity: 1;
     }
 
-    /* Details on right side */
     .details {
         text-align: left;
         max-width: 400px;
@@ -128,6 +126,7 @@
     <div class="content-box">
 
         <div class="photo-box">
+            <!-- Image is no longer loaded here -->
             <img id="playerPhoto" src="">
         </div>
 
@@ -146,16 +145,15 @@ const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
-function cleanLink(url) {
-    if (!url) return [];
-    const match = url.match(/[-\w]{25,}/);
-    if (!match) return [];
+let photoTab = null;   // single tab reference for OBS
+
+// Returns original-quality Google Drive VIEW link
+function getDriveViewLink(raw) {
+    if (!raw) return "";
+    const match = raw.match(/[-\w]{25,}/);
+    if (!match) return "";
     const id = match[0];
-    return [
-        `https://drive.google.com/uc?export=view&id=${id}`,
-        `https://drive.google.com/uc?export=download&id=${id}`,
-        `https://drive.google.com/thumbnail?id=${id}`
-    ];
+    return `https://drive.google.com/file/d/${id}/view`;
 }
 
 function loadPlayer() {
@@ -169,7 +167,6 @@ function loadPlayer() {
             const rows = json.table.rows;
 
             if (index < 1 || index > rows.length) return;
-
             const data = rows[index - 1].c;
 
             const name = data[0]?.v || "";
@@ -184,15 +181,17 @@ function loadPlayer() {
             document.getElementById("playerExtra").textContent = `${col4}, ${col5}`;
             document.getElementById("playerUnavail").textContent = `Unavailability - ${unavail}`;
 
-            const img = document.getElementById("playerPhoto");
-            const links = cleanLink(photoRaw);
-            let attempt = 0;
-            function tryLoad() {
-                if (attempt >= links.length) return;
-                img.src = links[attempt];
-                img.onerror = () => { attempt++; tryLoad(); };
+            // Full quality drive link
+            const fullLink = getDriveViewLink(photoRaw);
+            if (!fullLink) return;
+
+            // First time: open new tab
+            if (!photoTab || photoTab.closed) {
+                photoTab = window.open(fullLink, "_blank");
+            } else {
+                // Update old tab for OBS
+                photoTab.location.href = fullLink;
             }
-            tryLoad();
         });
 }
 </script>
