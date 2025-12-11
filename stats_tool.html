@@ -22,26 +22,38 @@
 <button onclick="openBowling()">Open Bowling</button>
 
 <script>
-// Opens the page normally (batting is default tab)
+// NORMAL open
 function openBatting() {
-    let url = document.getElementById("url").value.trim();
-    if (!url) return alert("Enter a URL");
-    window.open(url, "_blank");
+    let u = document.getElementById("url").value.trim();
+    if (!u) return alert("Enter URL");
+    window.open(u, "_blank");
 }
 
-// Opens with #bowling tag → JS inside browser auto-clicks tab
+// OPEN BOWLING BY INJECTING A SCRIPT INTO NEW TAB
 function openBowling() {
-    let url = document.getElementById("url").value.trim();
-    if (!url) return alert("Enter a URL");
-    window.open(url + "#bowling", "_blank");
-}
+    let u = document.getElementById("url").value.trim();
+    if (!u) return alert("Enter URL");
 
-// Auto-switch bowling tab when URL ends with #bowling
-if (location.hash === "#bowling") {
-    setTimeout(() => {
-        let btn = document.querySelector('button[data-rb-event-key="bowling"]')
-        if (btn) btn.click();
-    }, 1200);
+    let win = window.open("", "_blank");
+
+    // temporary HTML injected before loading target
+    win.document.write(`
+        <p style="font-family:Arial;font-size:20px;padding:20px;">
+            Loading Bowling Stats...
+        </p>
+        <script>
+            // after page loads → auto-click bowling tab
+            window.onload = function() {
+                setTimeout(function() {
+                    let btn = document.querySelector('button[data-rb-event-key="bowling"]');
+                    if (btn) btn.click();
+                }, 1500);
+            };
+        <\/script>
+    `);
+
+    // now navigate to real CrichHeroes page
+    win.location = u;
 }
 </script>
 
