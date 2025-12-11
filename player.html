@@ -10,7 +10,6 @@
     --photo-h: 380px;
 }
 
-/* Page */
 html,body{height:100%; margin:0;}
 body{
     background: radial-gradient(circle at center, #022235, #000c15 70%);
@@ -22,7 +21,6 @@ body{
     padding:30px 10px;
 }
 
-/* Input */
 .top-input{ margin-top:6px; }
 .top-input input{
     width:130px; padding:14px; font-size:22px; text-align:center;
@@ -30,7 +28,6 @@ body{
     background: rgba(0,20,30,0.9); color:#00eaff;
 }
 
-/* Card */
 .card{
     width:var(--card-width);
     max-width:calc(100% - 40px);
@@ -40,11 +37,10 @@ body{
     border-radius:18px;
     box-shadow: 0 0 40px #00eaff;
     display:flex;
-    align-items:center;           /* centers photo-frame vertically regardless of text height */
+    align-items:center;
     justify-content:center;
 }
 
-/* Inner layout */
 .content-box{
     display:flex;
     gap:28px;
@@ -52,9 +48,8 @@ body{
     width:100%;
 }
 
-/* FIXED photo frame: does NOT grow or shrink */
 .photo-frame{
-    flex: 0 0 var(--photo-w);      /* fixed width */
+    flex: 0 0 var(--photo-w);
     height: var(--photo-h);
     border-radius:14px;
     border:3px solid #00eaff;
@@ -66,18 +61,15 @@ body{
     color: rgba(0,234,255,0.25);
     font-size:16px;
     user-select:none;
-    /* ensure it's pixel-stable for OBS cropping */
     transform: translateZ(0);
 }
 
-/* Details take the remaining space */
 .details{
     flex: 1 1 auto;
-    min-width: 0; /* important so flex children can shrink and wrap */
+    min-width: 0;
     text-align:center;
 }
 
-/* Auto-resizing text that wraps instead of expanding layout */
 .name{
     font-weight:700;
     color:#b6ffff;
@@ -86,31 +78,26 @@ body{
     line-height:1.05;
     margin:0 0 6px 0;
     word-break:break-word;
-    hyphens:auto;
 }
 
 .role{
     color:#8df7ff;
     font-size: clamp(18px, 3vw, 40px);
     margin:6px 0;
-    word-break:break-word;
 }
 
 .extra{
     color:#b6faff;
     font-size: clamp(14px, 2.2vw, 28px);
     margin-top:12px;
-    word-break:break-word;
 }
 
 .unavail{
     color:#ff9a9a;
     font-size: clamp(12px, 1.8vw, 24px);
     margin-top:10px;
-    word-break:break-word;
 }
 
-/* small screens */
 @media (max-width:640px){
     :root{ --card-width: calc(100% - 40px); }
     .photo-frame{ flex:0 0 220px; height:280px; }
@@ -123,64 +110,92 @@ body{
     <input type="number" id="indexInput" min="1" placeholder="1" oninput="loadPlayer()">
 </div>
 
-<div class="card" aria-role="region">
+<div class="card">
     <div class="content-box">
-
-        <!-- Fixed, stable photo frame for OBS cropping -->
         <div class="photo-frame" id="photoFrame">PHOTO</div>
 
-        <!-- Details -->
         <div class="details">
             <div class="name" id="playerName"></div>
             <div class="role" id="playerRole"></div>
             <div class="extra" id="playerExtra"></div>
             <div class="unavail" id="playerUnavail"></div>
         </div>
-
     </div>
 </div>
 
 <script>
-const sheetID = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
+// --------------------------------------
+// CONFIG
+// --------------------------------------
+const sheetID   = "1aVs01QzHq92Qp8lnyFoINRFZH63eAtqwY9DYGkzO0Ik";
 const sheetName = "Sheet1";
 const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
 
 let photoTab = null;
 
+// --------------------------------------
+// Helper: extract Drive ID & make view link
+// --------------------------------------
 function getDriveViewLink(raw){
     if (!raw) return "";
     const m = raw.match(/[-\w]{25,}/);
     return m ? `https://drive.google.com/file/d/${m[0]}/view` : "";
 }
 
+// --------------------------------------
+// Safe cell getter (avoids null problems)
+// --------------------------------------
+function cell(row, col){
+    const c = row[col];
+    return c && c.v ? String(c.v) : "";
+}
+
+// --------------------------------------
+// MAIN FUNCTION
+// --------------------------------------
 function loadPlayer(){
     const index = parseInt(document.getElementById("indexInput").value);
     if (!index) return;
 
     fetch(url)
         .then(r => r.text())
-        .then(txt => {
-            const json = JSON.parse(txt.substring(47, txt.length - 2));
+        .then(raw => {
+            const json = JSON.parse(raw.substring(47, raw.length - 2));
             const rows = json.table.rows;
+
             if (index < 1 || index > rows.length) return;
-            const d = rows[index - 1].c || [];
 
-            document.getElementById("playerName").textContent = d[0]?.v || "";
-            document.getElementById("playerRole").textContent = d[1]?.v || "";
-            document.getElementById("playerExtra").textContent = `${d[3]?.v || ""}${d[4]?.v ? ", " + d[4].v : ""}`;
-            document.getElementById("playerUnavail").textContent = `Unavailability - ${d[5]?.v || ""}`;
+            const row = rows[index - 1].c;
 
-            // open full-size photo in separate tab (unchanged)
-            const link = getDriveViewLink(d[2]?.v);
+            const name  = cell(row,0);
+            const role  = cell(row,1);
+            const photo = cell(row,2);
+            const e1    = cell(row,3);
+            const e2    = cell(row,4);
+            const unav  = cell(row,5);
+
+            document.getElementById("playerName").textContent = name;
+            document.getElementById("playerRole").textContent = role;
+
+            // join extra values safely
+            const extra = [e1, e2].filter(x => x).join(", ");
+            document.getElementById("playerExtra").textContent = extra;
+
+            document.getElementById("playerUnavail").textContent =
+                unav ? `Unavailability - ${unav}` : "";
+
+            // --- open original Drive image in a new tab ---
+            const link = getDriveViewLink(photo);
             if (link){
-                if (!photoTab || photoTab.closed) photoTab = window.open(link, "_blank");
-                else {
+                if (!photoTab || photoTab.closed){
+                    photoTab = window.open(link, "_blank");
+                } else {
                     try { photoTab.location.href = link; }
                     catch(e){ photoTab = window.open(link, "_blank"); }
                 }
             }
         })
-        .catch(err => console.error("Load failed:", err));
+        .catch(err => console.error("LOAD ERROR:", err));
 }
 </script>
 
