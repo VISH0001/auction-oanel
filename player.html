@@ -160,8 +160,8 @@ function loadPlayer(){
             const json = JSON.parse(txt.substring(47, txt.length - 2));
             const rows = json.table.rows;
 
-            /* FIX: skip header row so SR=1 → first data row */
-            const dataRows = rows.slice(1);
+            /* FIX: Skip TWO rows at top */
+            const dataRows = rows.slice(2);
 
             if (index < 1 || index > dataRows.length) return;
 
